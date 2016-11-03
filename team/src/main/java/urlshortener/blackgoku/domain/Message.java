@@ -1,4 +1,4 @@
-package es.unizar.es.foodnet.model.service;
+package urlshortener.blackgoku.domain;
 
 
 /**
