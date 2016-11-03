@@ -1,9 +1,9 @@
-package es.unizar.es.foodnet.model.service;
+package urlshortener.blackgoku.domain;
 
 import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import static es.unizar.es.foodnet.model.service.Message.MESSAGE_ATTRIBUTE;
+import static urlshortener.blackgoku.domain.Message.MESSAGE_ATTRIBUTE;
 
 /**
  * Esta clase sirve para los distintos tipos de alertas que existen

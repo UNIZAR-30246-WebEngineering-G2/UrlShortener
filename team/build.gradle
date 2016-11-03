@@ -19,6 +19,7 @@ eclipse {
 
 dependencies {
     compile project(':common')
+    compile("org.thymeleaf:thymeleaf-spring4")
 
     // Provides the production database
     runtime 'org.hsqldb:hsqldb'

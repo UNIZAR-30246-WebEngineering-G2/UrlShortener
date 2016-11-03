@@ -73,8 +73,10 @@ public class UrlShortenerController {
 	public ResponseEntity<ShortURL> shortener(@RequestParam("url") String url,
 											  @RequestParam(value = "sponsor", required = false) String sponsor,
 											  HttpServletRequest request) {
-		ShortURL su = createAndSaveIfValid(url, sponsor, UUID
-				.randomUUID().toString(), extractIP(request));
+		String id = (String) request.getSession().getAttribute("user");
+		if(id == null) id="";
+
+		ShortURL su = createAndSaveIfValid(url, sponsor, id, extractIP(request));
 		if (su != null) {
 			HttpHeaders h = new HttpHeaders();
 			h.setLocation(su.getUri());
