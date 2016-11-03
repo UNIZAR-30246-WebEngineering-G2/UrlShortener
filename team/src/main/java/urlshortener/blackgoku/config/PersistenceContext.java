@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import urlshortener.blackgoku.repository.UserRepository;
+import urlshortener.blackgoku.repository.UserRepositoryImpl;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ClickRepositoryImpl;
 import urlshortener.common.repository.ShortURLRepository;
@@ -25,5 +27,9 @@ public class PersistenceContext {
 	ClickRepository clickRepository() {
 		return new ClickRepositoryImpl(jdbc);
 	}
-	
+
+	@Bean
+	UserRepository userRepository() {
+		return new UserRepositoryImpl(jdbc);
+	}
 }
