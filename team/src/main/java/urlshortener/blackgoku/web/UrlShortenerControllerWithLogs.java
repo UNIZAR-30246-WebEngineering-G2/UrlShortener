@@ -3,17 +3,12 @@ package urlshortener.blackgoku.web;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletRequest;
-
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.web.UrlShortenerController;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 public class UrlShortenerControllerWithLogs extends UrlShortenerController {
@@ -50,12 +45,6 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 											  @RequestParam(value = "sponsor", required = false) String sponsor,
 											  HttpServletRequest request) {
 		logger.info("Requested new short for uri " + url);
-		logger.info("Checking if url get method returns 200 ok");
-        TestActive check = new TestActive(url);
-        if(check.isActive()){
-            return super.shortener(url, sponsor, request);
-        } else {
-            return super.shortener(null,sponsor,request );
-        }
+		return super.shortener(url, sponsor, request);
 	}
 }
