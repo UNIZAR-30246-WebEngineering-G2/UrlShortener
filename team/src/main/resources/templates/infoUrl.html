@@ -41,6 +41,8 @@
                                         <th>Number of clicks</th>
                                         <th>Date of creation</th>
                                         <th>Target URL</th>
+                                        <th>Number of unique visitors</th>
+                                        <th>IP of the owner</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -48,7 +50,12 @@
                                             <td th:text="${session.urlCreator}"></td>
                                             <td th:text="${session.numberClicks}"></td>
                                             <td th:text="${session.creationDate}"></td>
-                                            <td th:text="${session.targetUrl}"></td>
+                                            <td>
+                                                <a target="_blank" th:href="${session.targetUrl}"
+                                                   th:text="${session.targetUrl}"></a>
+                                            </td>
+                                            <td th:text="${session.uniqueVisitors}"></td>
+                                            <td th:text="${session.ownerIP}"></td>
                                         </tr>
                                     </tbody>
                                 </table>

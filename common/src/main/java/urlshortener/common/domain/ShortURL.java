@@ -54,6 +54,10 @@ public class ShortURL {
 		return owner;
 	}
 
+	public void setOwner(String owner) {
+		this.owner = owner;
+	}
+
 	public Integer getMode() {
 		return mode;
 	}
