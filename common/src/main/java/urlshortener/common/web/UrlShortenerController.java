@@ -1,7 +1,6 @@
 package urlshortener.common.web;
 
 import com.google.common.hash.Hashing;
-
 import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,23 +8,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.sql.Date;
-import java.util.UUID;
-
-import javax.servlet.http.HttpServletRequest;
-
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+import urlshortener.common.domain.Click;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
-import urlshortener.common.domain.Click;
+
+import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.sql.Date;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
@@ -70,20 +63,23 @@ public class UrlShortenerController {
 	}
 
 	@RequestMapping(value = "/link", method = RequestMethod.POST)
-	public ResponseEntity<ShortURL> shortener(@RequestParam("url") String url,
-											  @RequestParam(value = "sponsor", required = false) String sponsor,
-											  HttpServletRequest request) {
-		String id = (String) request.getSession().getAttribute("user");
-		if(id == null) id="";
+	public ResponseEntity shortener(@RequestParam("url") String url,
+									@RequestParam(value = "sponsor", required = false) String sponsor,
+									HttpServletRequest request) {
+		ShortURL su = null;
+		HttpHeaders h=new HttpHeaders();
+		if(isReachable(url)){
+            String id = (String) request.getSession().getAttribute("user");
+            if(id == null) id="";
+            su = createAndSaveIfValid(url, sponsor, id, extractIP(request));
+            if (su != null) {
+                h.setLocation(su.getUri());
+                return new ResponseEntity<>(su, h, HttpStatus.CREATED);
+            } else {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+		} else return new ResponseEntity<>(su,h, HttpStatus.SERVICE_UNAVAILABLE);
 
-		ShortURL su = createAndSaveIfValid(url, sponsor, id, extractIP(request));
-		if (su != null) {
-			HttpHeaders h = new HttpHeaders();
-			h.setLocation(su.getUri());
-			return new ResponseEntity<>(su, h, HttpStatus.CREATED);
-		} else {
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
 	}
 
 	private ShortURL createAndSaveIfValid(String url, String sponsor,
@@ -103,5 +99,12 @@ public class UrlShortenerController {
 		} else {
 			return null;
 		}
+	}
+
+	private boolean isReachable(String url) {
+		RestTemplate restTemplate = new RestTemplate();
+		ResponseEntity responseEntity = restTemplate.getForEntity(url, String.class);
+		int responseCode = responseEntity.getStatusCodeValue();
+		return responseCode==200;
 	}
 }
