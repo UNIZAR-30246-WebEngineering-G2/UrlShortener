@@ -2,10 +2,11 @@ package urlshortener.blackgoku.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
-
+import javax.xml.ws.Response;
+import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 
 /**
@@ -18,16 +19,24 @@ public class TestActive {
     public TestActive(String url){
         this.url=url;
     }
+
     public boolean isActive() {
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity responseEntity = restTemplate.getForEntity(url, String.class);
-        int responseCode = responseEntity.getStatusCodeValue();
-        if (responseCode == 200) {
-            logger.info("200 OK returning the shortened uri");
-            return true;
-        } else {
-            logger.info(responseCode + " error uri unreachable returning error to user.");
+        URL urlServer = null;
+        try {
+            urlServer = new URL(this.url);
+            logger.info("Trying to reach "+url);
+            HttpURLConnection urlConn = (HttpURLConnection) urlServer.openConnection();
+            urlConn.setConnectTimeout(5000); //<- 5 Seconds Timeout
+            urlConn.connect();
+            logger.info("URL returns" +urlConn.getResponseCode());
+            if (urlConn.getResponseCode() == 200) {		// URL reachable
+                return true;
+            } else {				// URL unreachable
+                return false;
+            }
+        } catch (java.io.IOException e) {
             return false;
         }
     }
+
 }

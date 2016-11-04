@@ -55,7 +55,7 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
         if(check.isActive()){
             return super.shortener(url, sponsor, request);
         } else {
-            return super.shortener("", sponsor, request);
+            return super.shortener(null,sponsor,request );
         }
 	}
 }
