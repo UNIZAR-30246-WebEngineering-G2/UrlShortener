@@ -15,6 +15,7 @@ public class Application extends SpringBootServletInitializer  implements Comman
 	@Autowired
 	UserRepository userRepository;
 
+
 	public static void main(String[] args) throws Exception {
 		SpringApplication.run(Application.class, args);
 	}
