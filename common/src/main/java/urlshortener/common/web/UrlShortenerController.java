@@ -80,8 +80,15 @@ public class UrlShortenerController {
 		if (su != null) {
 			HttpHeaders h = new HttpHeaders();
 			h.setLocation(su.getUri());
-			return new ResponseEntity<>(su, h, HttpStatus.CREATED);
-		} else {
+			if(!su.getOwner().equals(id)){
+				//Shortened URL already exists
+				LOG.error("Extended URL requested has already been shortened");
+				return new ResponseEntity<>(su, h,HttpStatus.CONFLICT);
+			} else{
+				return new ResponseEntity<>(su, h, HttpStatus.CREATED);
+			}
+		}
+		else {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
