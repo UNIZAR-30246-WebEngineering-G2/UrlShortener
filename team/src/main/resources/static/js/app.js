@@ -26,6 +26,10 @@ $(document).ready(
                                 + "'>"
                                 + json.uri
                                 + "</a></div>");
+                        } else if( xhr.status === 503){
+                            $("#result").html(
+                                "<div class='alert alert-danger lead'>Error: the url provided is unreachable" +
+                                "</div>");
                         }
                         else
                             $("#result").html(

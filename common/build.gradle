@@ -10,6 +10,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-jdbc:1.4.0.RELEASE'
     compile 'org.springframework.hateoas:spring-hateoas:0.20.0.RELEASE'
     compile 'org.springframework.plugin:spring-plugin-core:1.2.0.RELEASE'
+    compile ('com.maxmind.geoip:geoip-api:1.2.14')
 
     compile 'commons-validator:commons-validator:1.5.1'
 	compile 'com.google.guava:guava:19.0'

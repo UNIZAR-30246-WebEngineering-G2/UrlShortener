@@ -15,13 +15,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
-import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.web.client.RestTemplate;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
@@ -53,8 +57,16 @@ public class UrlShortenerController {
 	}
 
 	private void createAndSaveClick(String hash, String ip) {
+		String latitude = "IP not in DB";
+		String longitude = "IP not in DB";
+
+		if(GeoIPv4.getLocation(ip) != null){
+			latitude = String.valueOf(GeoIPv4.getLocation(ip).getLatitude());
+			longitude = String.valueOf(GeoIPv4.getLocation(ip).getLongitude());
+		} else LOG.error("Information about IP " + ip + " not found");
+
 		Click cl = new Click(null, hash, new Date(System.currentTimeMillis()),
-				null, null, null, ip, null);
+				null, null, null, ip, null, latitude, longitude);
 		cl=clickRepository.save(cl);
 		LOG.info(cl!=null?"["+hash+"] saved with id ["+cl.getId()+"]":"["+hash+"] was not saved");
 	}
@@ -73,42 +85,60 @@ public class UrlShortenerController {
 	public ResponseEntity<ShortURL> shortener(@RequestParam("url") String url,
 											  @RequestParam(value = "sponsor", required = false) String sponsor,
 											  HttpServletRequest request) {
-		String id = (String) request.getSession().getAttribute("user");
-		if(id == null) id="";
 
-		ShortURL su = createAndSaveIfValid(url, sponsor, id, extractIP(request));
-		if (su != null) {
-			HttpHeaders h = new HttpHeaders();
-			h.setLocation(su.getUri());
-			if(!su.getOwner().equals(id)){
-				//Shortened URL already exists
-				LOG.error("Extended URL requested has already been shortened");
-				return new ResponseEntity<>(su, h,HttpStatus.CONFLICT);
+		UrlValidator urlValidator = new UrlValidator(new String[] { "http", "https" });
+		if(urlValidator.isValid(url)){
+			if(!isReachable(url)){
+				LOG.error("The url provided couldn't be reached, can't shorten it");
+				return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
 			} else{
-				return new ResponseEntity<>(su, h, HttpStatus.CREATED);
+				String id = (String) request.getSession().getAttribute("user");
+				if(id == null) id="";
+
+				ShortURL su = createAndSaveIfValid(url, sponsor, id, extractIP(request));
+				if (su != null) {
+					HttpHeaders h = new HttpHeaders();
+					h.setLocation(su.getUri());
+					if(!su.getOwner().equals(id)){
+						//Shortened URL already exists
+						LOG.error("Extended URL requested has already been shortened");
+						return new ResponseEntity<>(su, h,HttpStatus.CONFLICT);
+					} else{
+						return new ResponseEntity<>(su, h, HttpStatus.CREATED);
+					}
+				}
+				else {
+					LOG.error("Couldn't save new shortened URL");
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				}
 			}
-		}
-		else {
+		} else{
+			LOG.error("The entered URL is not valid");
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
 
 	private ShortURL createAndSaveIfValid(String url, String sponsor,
 										  String owner, String ip) {
-		UrlValidator urlValidator = new UrlValidator(new String[] { "http",
-				"https" });
-		if (urlValidator.isValid(url)) {
-			String id = Hashing.murmur3_32()
-					.hashString(url, StandardCharsets.UTF_8).toString();
-			ShortURL su = new ShortURL(id, url,
-					linkTo(
-							methodOn(UrlShortenerController.class).redirectTo(
-									id, null)).toUri(), sponsor, new Date(
-							System.currentTimeMillis()), owner,
-					HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
-			return shortURLRepository.save(su);
-		} else {
-			return null;
+		String id = Hashing.murmur3_32()
+				.hashString(url, StandardCharsets.UTF_8).toString();
+		ShortURL su = new ShortURL(id, url,
+				linkTo(
+						methodOn(UrlShortenerController.class).redirectTo(
+								id, null)).toUri(), sponsor, new Date(
+				System.currentTimeMillis()), owner,
+				HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
+		return shortURLRepository.save(su);
+	}
+
+	private boolean isReachable(String url) {
+		try {
+			HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+			connection.setRequestMethod("HEAD");
+			int responseCode = connection.getResponseCode();
+			return responseCode == 200;
+		} catch (IOException e) {
+			return false;
 		}
 	}
 }
