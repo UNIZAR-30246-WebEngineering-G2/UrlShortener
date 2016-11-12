@@ -27,5 +27,7 @@ CREATE TABLE CLICK(
 	BROWSER		VARCHAR(50),				-- Browser
 	PLATFORM	VARCHAR(50),				-- Platform
 	IP			VARCHAR(20),				-- IP
-	COUNTRY		VARCHAR(50)					-- Country
+	COUNTRY		VARCHAR(50),					-- Country
+	LATITUDE VARCHAR(256),           --Latitude
+	LONGITUDE VARCHAR(256)            --Longitude
 )
