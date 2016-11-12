@@ -17,15 +17,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.ProtocolException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.ModelAndView;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
@@ -76,9 +76,18 @@ public class UrlShortenerController {
 	}
 
 	private ResponseEntity<?> createSuccessfulRedirectToResponse(ShortURL l) {
-		HttpHeaders h = new HttpHeaders();
-		h.setLocation(URI.create(l.getTarget()));
-		return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
+
+		if(l.getSponsor().equals("true")){
+			HttpHeaders h = new HttpHeaders();
+			h.setLocation(URI.create("/publicity/" + l.getHash()));
+			return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
+
+		}
+		else{
+			HttpHeaders h = new HttpHeaders();
+			h.setLocation(URI.create(l.getTarget()));
+			return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
+		}
 	}
 
 	@RequestMapping(value = "/link", method = RequestMethod.POST)
@@ -120,15 +129,28 @@ public class UrlShortenerController {
 
 	private ShortURL createAndSaveIfValid(String url, String sponsor,
 										  String owner, String ip) {
+
 		String id = Hashing.murmur3_32()
-				.hashString(url, StandardCharsets.UTF_8).toString();
-		ShortURL su = new ShortURL(id, url,
-				linkTo(
-						methodOn(UrlShortenerController.class).redirectTo(
-								id, null)).toUri(), sponsor, new Date(
-				System.currentTimeMillis()), owner,
-				HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
+					.hashString(url, StandardCharsets.UTF_8).toString();
+		ShortURL su;
+		if(sponsor == null){
+			su = new ShortURL(id, url,
+					linkTo(
+							methodOn(UrlShortenerController.class).redirectTo(
+									id, null)).toUri(), "false", new Date(
+					System.currentTimeMillis()), owner,
+					HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
+		}else{
+			su = new ShortURL(id, url,
+					linkTo(
+							methodOn(UrlShortenerController.class).redirectTo(
+									id, null)).toUri(), "true", new Date(
+					System.currentTimeMillis()), owner,
+					HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
+		}
+
 		return shortURLRepository.save(su);
+
 	}
 
 	private boolean isReachable(String url) {
@@ -141,4 +163,16 @@ public class UrlShortenerController {
 			return false;
 		}
 	}
+
+	@RequestMapping(value = "/publicity/{id:(?!link).*}", method = RequestMethod.GET)
+ 	public ModelAndView shortener(@PathVariable String id){
+
+		ModelAndView modelAndView = new ModelAndView("publicity");
+		ShortURL l = shortURLRepository.findByKey(id);
+
+		modelAndView.addObject("url",l.getTarget());
+		return modelAndView;
+	}
+
+
 }
