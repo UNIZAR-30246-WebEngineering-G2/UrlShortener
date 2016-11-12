@@ -9,11 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -22,6 +18,7 @@ import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.web.servlet.ModelAndView;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
@@ -64,9 +61,20 @@ public class UrlShortenerController {
 	}
 
 	private ResponseEntity<?> createSuccessfulRedirectToResponse(ShortURL l) {
-		HttpHeaders h = new HttpHeaders();
-		h.setLocation(URI.create(l.getTarget()));
-		return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
+
+		if(l.getSponsor().equals("true")){
+			HttpHeaders h = new HttpHeaders();
+			h.setLocation(URI.create("/publicity/" + l.getHash()));
+			return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
+
+		}
+		else{
+			HttpHeaders h = new HttpHeaders();
+			h.setLocation(URI.create(l.getTarget()));
+			return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
+		}
+
+
 	}
 
 	@RequestMapping(value = "/link", method = RequestMethod.POST)
@@ -100,15 +108,37 @@ public class UrlShortenerController {
 		if (urlValidator.isValid(url)) {
 			String id = Hashing.murmur3_32()
 					.hashString(url, StandardCharsets.UTF_8).toString();
-			ShortURL su = new ShortURL(id, url,
-					linkTo(
-							methodOn(UrlShortenerController.class).redirectTo(
-									id, null)).toUri(), sponsor, new Date(
-							System.currentTimeMillis()), owner,
-					HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
+			ShortURL su;
+			if(sponsor==null){ //Don't have publicity
+				su = new ShortURL(id, url,
+						linkTo(
+								methodOn(UrlShortenerController.class).redirectTo(
+										id, null)).toUri(), "false", new Date(
+						System.currentTimeMillis()), owner,
+						HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
+			}
+			else{	//Have publicity
+				su = new ShortURL(id, url,
+						linkTo(
+								methodOn(UrlShortenerController.class).redirectTo(
+										id, null)).toUri(), "true", new Date(
+						System.currentTimeMillis()), owner,
+						HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
+			}
+
 			return shortURLRepository.save(su);
 		} else {
 			return null;
 		}
+	}
+
+	@RequestMapping(value = "/publicity/{id:(?!link).*}", method = RequestMethod.GET)
+	public ModelAndView shortener(@PathVariable String id){
+
+		ModelAndView modelAndView = new ModelAndView("publicity");
+		ShortURL l = shortURLRepository.findByKey(id);
+
+		modelAndView.addObject("url",l.getTarget());
+		return modelAndView;
 	}
 }
