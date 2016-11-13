@@ -50,7 +50,7 @@ public class UrlShortenerController {
 		ShortURL l = shortURLRepository.findByKey(id);
 		if (l != null) {
 			createAndSaveClick(id, extractIP(request));
-			return createSuccessfulRedirectToResponse(l);
+			return createSuccessfulRedirectToResponse(l, request);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
@@ -69,25 +69,6 @@ public class UrlShortenerController {
 				null, null, null, ip, null, latitude, longitude);
 		cl=clickRepository.save(cl);
 		LOG.info(cl!=null?"["+hash+"] saved with id ["+cl.getId()+"]":"["+hash+"] was not saved");
-	}
-
-	private String extractIP(HttpServletRequest request) {
-		return request.getRemoteAddr();
-	}
-
-	private ResponseEntity<?> createSuccessfulRedirectToResponse(ShortURL l) {
-
-		if(l.getSponsor().equals("true")){
-			HttpHeaders h = new HttpHeaders();
-			h.setLocation(URI.create("/publicity/" + l.getHash()));
-			return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
-
-		}
-		else{
-			HttpHeaders h = new HttpHeaders();
-			h.setLocation(URI.create(l.getTarget()));
-			return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
-		}
 	}
 
 	@RequestMapping(value = "/link", method = RequestMethod.POST)
@@ -127,6 +108,26 @@ public class UrlShortenerController {
 		}
 	}
 
+	private String extractIP(HttpServletRequest request) {
+		return request.getRemoteAddr();
+	}
+
+	private ResponseEntity<?> createSuccessfulRedirectToResponse(ShortURL l, HttpServletRequest request) {
+
+		if(l.getSponsor().equals("true")){
+			HttpHeaders h = new HttpHeaders();
+			h.setLocation(URI.create("/publicity"));
+			request.getSession().setAttribute("urlPubli",l.getHash());
+			return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
+
+		}
+		else{
+			HttpHeaders h = new HttpHeaders();
+			h.setLocation(URI.create(l.getTarget()));
+			return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
+		}
+	}
+
 	private ShortURL createAndSaveIfValid(String url, String sponsor,
 										  String owner, String ip) {
 
@@ -163,16 +164,4 @@ public class UrlShortenerController {
 			return false;
 		}
 	}
-
-	@RequestMapping(value = "/publicity/{id:(?!link).*}", method = RequestMethod.GET)
- 	public ModelAndView shortener(@PathVariable String id){
-
-		ModelAndView modelAndView = new ModelAndView("publicity");
-		ShortURL l = shortURLRepository.findByKey(id);
-
-		modelAndView.addObject("url",l.getTarget());
-		return modelAndView;
-	}
-
-
 }
