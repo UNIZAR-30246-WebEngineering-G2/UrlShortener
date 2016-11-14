@@ -21,11 +21,9 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
-import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.web.servlet.ModelAndView;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
@@ -38,6 +36,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 public class UrlShortenerController {
 	private static final Logger LOG = LoggerFactory
 			.getLogger(UrlShortenerController.class);
+	private IPService ipService = new IPService();
 	@Autowired
 	protected ShortURLRepository shortURLRepository;
 
@@ -60,9 +59,13 @@ public class UrlShortenerController {
 		String latitude = "IP not in DB";
 		String longitude = "IP not in DB";
 
-		if(GeoIPv4.getLocation(ip) != null){
-			latitude = String.valueOf(GeoIPv4.getLocation(ip).getLatitude());
-			longitude = String.valueOf(GeoIPv4.getLocation(ip).getLongitude());
+		if(ipService.obtainLocation(ip) != null){
+			latitude = String.valueOf(ipService.obtainLocation(ip).getLatitude());
+			longitude = String.valueOf(ipService.obtainLocation(ip).getLongitude());
+
+			LOG.info("Latitud del nuevo visitante: " + latitude);
+			LOG.info("Longitud del nuevo visitante: " + longitude);
+
 		} else LOG.error("Information about IP " + ip + " not found");
 
 		Click cl = new Click(null, hash, new Date(System.currentTimeMillis()),
@@ -114,7 +117,7 @@ public class UrlShortenerController {
 
 	private ResponseEntity<?> createSuccessfulRedirectToResponse(ShortURL l, HttpServletRequest request) {
 
-		if(l.getSponsor().equals("true")){
+		if(l.getSponsor() != null){
 			HttpHeaders h = new HttpHeaders();
 			h.setLocation(URI.create("/publicity"));
 			request.getSession().setAttribute("urlPubli",l.getHash());
@@ -134,21 +137,12 @@ public class UrlShortenerController {
 		String id = Hashing.murmur3_32()
 					.hashString(url, StandardCharsets.UTF_8).toString();
 		ShortURL su;
-		if(sponsor == null){
-			su = new ShortURL(id, url,
-					linkTo(
-							methodOn(UrlShortenerController.class).redirectTo(
-									id, null)).toUri(), "false", new Date(
-					System.currentTimeMillis()), owner,
-					HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
-		}else{
-			su = new ShortURL(id, url,
-					linkTo(
-							methodOn(UrlShortenerController.class).redirectTo(
-									id, null)).toUri(), "true", new Date(
-					System.currentTimeMillis()), owner,
-					HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
-		}
+		su = new ShortURL(id, url,
+				linkTo(
+						methodOn(UrlShortenerController.class).redirectTo(
+								id, null)).toUri(), sponsor, new Date(
+				System.currentTimeMillis()), owner,
+				HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
 
 		return shortURLRepository.save(su);
 
