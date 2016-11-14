@@ -65,6 +65,10 @@ public class UrlShortenerController {
 		if(ipService.obtainLocation(ip) != null){
 			latitude = String.valueOf(ipService.obtainLocation(ip).getLatitude());
 			longitude = String.valueOf(ipService.obtainLocation(ip).getLongitude());
+
+			System.out.println("Latitud del nuevo visitante: " + latitude);
+			System.out.println("Longitud del nuevo visitante: " + longitude);
+
 		} else LOG.error("Information about IP " + ip + " not found");
 
 		Click cl = new Click(null, hash, new Date(System.currentTimeMillis()),
