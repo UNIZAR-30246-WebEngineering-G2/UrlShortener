@@ -60,9 +60,11 @@ public class UrlShortenerController {
 		String latitude = "IP not in DB";
 		String longitude = "IP not in DB";
 
-		if(GeoIPv4.getLocation(ip) != null){
-			latitude = String.valueOf(GeoIPv4.getLocation(ip).getLatitude());
-			longitude = String.valueOf(GeoIPv4.getLocation(ip).getLongitude());
+		IPv2 ipService = new IPv2();
+
+		if(ipService.obtainLocation(ip) != null){
+			latitude = String.valueOf(ipService.obtainLocation(ip).getLatitude());
+			longitude = String.valueOf(ipService.obtainLocation(ip).getLongitude());
 		} else LOG.error("Information about IP " + ip + " not found");
 
 		Click cl = new Click(null, hash, new Date(System.currentTimeMillis()),
