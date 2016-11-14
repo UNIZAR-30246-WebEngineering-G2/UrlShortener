@@ -114,7 +114,7 @@ public class UrlShortenerController {
 
 	private ResponseEntity<?> createSuccessfulRedirectToResponse(ShortURL l, HttpServletRequest request) {
 
-		if(l.getSponsor().equals("true")){
+		if(l.getSponsor() != null){
 			HttpHeaders h = new HttpHeaders();
 			h.setLocation(URI.create("/publicity"));
 			request.getSession().setAttribute("urlPubli",l.getHash());
@@ -134,21 +134,12 @@ public class UrlShortenerController {
 		String id = Hashing.murmur3_32()
 					.hashString(url, StandardCharsets.UTF_8).toString();
 		ShortURL su;
-		if(sponsor == null){
-			su = new ShortURL(id, url,
-					linkTo(
-							methodOn(UrlShortenerController.class).redirectTo(
-									id, null)).toUri(), "false", new Date(
-					System.currentTimeMillis()), owner,
-					HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
-		}else{
-			su = new ShortURL(id, url,
-					linkTo(
-							methodOn(UrlShortenerController.class).redirectTo(
-									id, null)).toUri(), "true", new Date(
-					System.currentTimeMillis()), owner,
-					HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
-		}
+		su = new ShortURL(id, url,
+				linkTo(
+						methodOn(UrlShortenerController.class).redirectTo(
+								id, null)).toUri(), sponsor, new Date(
+				System.currentTimeMillis()), owner,
+				HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
 
 		return shortURLRepository.save(su);
 
