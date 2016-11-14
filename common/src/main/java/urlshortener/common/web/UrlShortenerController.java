@@ -21,11 +21,9 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
-import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.web.servlet.ModelAndView;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
@@ -38,6 +36,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 public class UrlShortenerController {
 	private static final Logger LOG = LoggerFactory
 			.getLogger(UrlShortenerController.class);
+	private IPService ipService = new IPService();
 	@Autowired
 	protected ShortURLRepository shortURLRepository;
 
@@ -60,14 +59,12 @@ public class UrlShortenerController {
 		String latitude = "IP not in DB";
 		String longitude = "IP not in DB";
 
-		IPv2 ipService = new IPv2();
-
 		if(ipService.obtainLocation(ip) != null){
 			latitude = String.valueOf(ipService.obtainLocation(ip).getLatitude());
 			longitude = String.valueOf(ipService.obtainLocation(ip).getLongitude());
 
-			System.out.println("Latitud del nuevo visitante: " + latitude);
-			System.out.println("Longitud del nuevo visitante: " + longitude);
+			LOG.info("Latitud del nuevo visitante: " + latitude);
+			LOG.info("Longitud del nuevo visitante: " + longitude);
 
 		} else LOG.error("Information about IP " + ip + " not found");
 
