@@ -1,14 +1,7 @@
 allprojects {
     apply plugin: 'eclipse'
-    apply plugin: 'idea'
     apply plugin: 'java'
-
-    jar {
-        baseName = 'ingweb'
-    }
-
-    task stage(dependsOn: ['build', 'clean'])
-    build.mustRunAfter clean
+    apply plugin: 'idea'
 }
 
 // Instructions for each sub project

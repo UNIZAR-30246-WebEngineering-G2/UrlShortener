@@ -1,1 +1,1 @@
-web: java -Dserver.port=$PORT $JAVA_OPTS -jar build/libs/ingweb.jar
+web: java -Dserver.port=$PORT $JAVA_OPTS -jar team/build/libs/ingweb.jar
