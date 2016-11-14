@@ -1,6 +1,10 @@
 allprojects {
    apply plugin: 'eclipse'
    apply plugin: 'idea'
+
+    jar {
+        baseName = 'ingweb'
+    }
 }
 
 // Instructions for each sub project
@@ -14,8 +18,4 @@ subprojects {
 	 mavenCentral()
 	 maven { url 'http://repo.spring.io/release' }
    }
-}
-
-jar {
-    baseName = 'ingweb'
 }
