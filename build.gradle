@@ -1,12 +1,15 @@
 allprojects {
-   apply plugin: 'eclipse'
-   apply plugin: 'idea'
-    apply plugin: 'spring-boot'
+    apply plugin: 'eclipse'
+    apply plugin: 'idea'
+    apply plugin: 'java'
+
+    jar {
+        baseName = 'ingweb'
+    }
 }
 
 // Instructions for each sub project
 subprojects {
-   apply plugin: 'java'
 
    sourceCompatibility = 1.8
    targetCompatibility = 1.8
@@ -15,35 +18,4 @@ subprojects {
 	 mavenCentral()
 	 maven { url 'http://repo.spring.io/release' }
    }
-    dependencies {
-        classpath('org.springframework.boot:spring-boot-gradle-plugin:1.4.0.RELEASE')
-    }
-
-    configurations {
-        providedRuntime
-        all {
-            exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
-        }
-    }
-
-    jar {
-        baseName = 'ingweb'
-    }
-
-    dependencies {
-        compile 'org.springframework.boot:spring-boot-starter-web'
-        compile 'javax.servlet:jstl'
-
-        compile 'org.springframework.boot:spring-boot-starter-log4j2'
-
-        compile 'org.springframework.boot:spring-boot-starter-websocket'
-
-        compile 'org.webjars:bootstrap:3.3.5'
-        compile 'org.webjars:jquery:2.1.4'
-
-        providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
-        providedRuntime 'org.apache.tomcat.embed:tomcat-embed-jasper'
-
-        testCompile 'org.springframework.boot:spring-boot-starter-test'
-    }
 }
