@@ -1,10 +1,18 @@
 allprojects {
+    apply plugin: 'spring-boot'
     apply plugin: 'eclipse'
     apply plugin: 'idea'
     apply plugin: 'java'
 
     jar {
         baseName = 'ingweb'
+    }
+
+    configurations {
+        providedRuntime
+        all {
+            exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        }
     }
 }
 
