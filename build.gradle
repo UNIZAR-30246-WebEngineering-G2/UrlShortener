@@ -1,7 +1,6 @@
 allprojects {
    apply plugin: 'eclipse'
    apply plugin: 'idea'
-    apply plugin: 'war'
 }
 
 // Instructions for each sub project
@@ -17,6 +16,6 @@ subprojects {
    }
 }
 
-war {
+jar {
     baseName = 'ingweb'
 }
