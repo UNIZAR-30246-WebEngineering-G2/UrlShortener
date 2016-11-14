@@ -2,6 +2,9 @@ allprojects {
     apply plugin: 'eclipse'
     apply plugin: 'java'
     apply plugin: 'idea'
+
+    task stage(dependsOn: ['build', 'clean'])
+    build.mustRunAfter clean
 }
 
 // Instructions for each sub project
