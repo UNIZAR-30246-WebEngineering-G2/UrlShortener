@@ -15,3 +15,7 @@ subprojects {
 	 maven { url 'http://repo.spring.io/release' }
    }
 }
+
+war {
+    baseName = 'ingweb'
+}
