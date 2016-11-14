@@ -1,10 +1,6 @@
 allprojects {
    apply plugin: 'eclipse'
    apply plugin: 'idea'
-
-    jar {
-        baseName = 'ingweb'
-    }
 }
 
 // Instructions for each sub project
@@ -18,4 +14,15 @@ subprojects {
 	 mavenCentral()
 	 maven { url 'http://repo.spring.io/release' }
    }
+
+    configurations {
+        providedRuntime
+        all {
+            exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        }
+    }
+
+    jar {
+        baseName = 'ingweb'
+    }
 }
