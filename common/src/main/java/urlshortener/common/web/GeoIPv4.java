@@ -15,9 +15,8 @@ public class GeoIPv4 {
     static {
         try {
             lookUp = new LookupService(
-                    GeoIPv4.class.getResource("/GeoLiteCity.dat").getFile(),
+                    GeoIPv4.class.getResource("/location/GeoLiteCity.dat").getPath(),
                     LookupService.GEOIP_MEMORY_CACHE);
-
             //System.out.println("GeoIP Database loaded: " + lookUp.getDatabaseInfo());
         } catch (IOException e) {
             logger.error("Couldn't load GeoIP database");
