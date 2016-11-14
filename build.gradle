@@ -1,6 +1,7 @@
 allprojects {
    apply plugin: 'eclipse'
    apply plugin: 'idea'
+    apply plugin: 'spring-boot'
 }
 
 // Instructions for each sub project
@@ -14,6 +15,10 @@ subprojects {
 	 mavenCentral()
 	 maven { url 'http://repo.spring.io/release' }
    }
+    dependencies {
+        classpath('org.springframework.boot:spring-boot-gradle-plugin:1.4.0.RELEASE')
+        classpath('org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.1')
+    }
 
     configurations {
         providedRuntime
