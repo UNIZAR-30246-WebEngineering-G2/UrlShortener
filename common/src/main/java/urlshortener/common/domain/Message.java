@@ -1,4 +1,4 @@
-package urlshortener.blackgoku.domain;
+package urlshortener.common.domain;
 
 
 /**

@@ -1,9 +1,7 @@
-package urlshortener.blackgoku.domain;
+package urlshortener.common.domain;
 
 import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import static urlshortener.blackgoku.domain.Message.MESSAGE_ATTRIBUTE;
 
 /**
  * Esta clase sirve para los distintos tipos de alertas que existen
@@ -47,7 +45,7 @@ public final class MessageHelper {
      * Metodo que enlaza las alertas
      */
     private static void addAttribute(RedirectAttributes ra, String message, Message.Type type, String args) {
-        ra.addFlashAttribute(MESSAGE_ATTRIBUTE, new Message(message, type, args));
+        ra.addFlashAttribute(Message.MESSAGE_ATTRIBUTE, new Message(message, type, args));
     }
 
     /**
@@ -82,6 +80,6 @@ public final class MessageHelper {
      * Enlace de alertas con model
      */
     private static void addAttribute(Model model, String message, Message.Type type, String args) {
-        model.addAttribute(MESSAGE_ATTRIBUTE, new Message(message, type, args));
+        model.addAttribute(Message.MESSAGE_ATTRIBUTE, new Message(message, type, args));
     }
 }
