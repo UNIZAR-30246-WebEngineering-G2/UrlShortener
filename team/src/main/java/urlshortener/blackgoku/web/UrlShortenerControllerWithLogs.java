@@ -32,65 +32,15 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 	private static final Logger logger = LoggerFactory.getLogger(UrlShortenerControllerWithLogs.class);
 	private final Integer SECONDS_FOR_REQUESTS = 10;
 
-	@RequestMapping(value = "/{id:(?!link|index).*}+", method = RequestMethod.GET)
-	public ModelAndView redirectToPlus(@PathVariable String id, HttpServletRequest request,
-									   RedirectAttributes ra) {
-		ShortURL su = shortURLRepository.findByKey(id);
-
-		String user = (String) request.getSession().getAttribute("user");
-		if(user.equals(su.getOwner())){
-			logger.info("Owner of the shortened URL requests more info");
-			request.getSession().setAttribute("urlCreator",user);
-			request.getSession().setAttribute("numberClicks",clickRepository.findByHash(su.getHash()).size());
-			request.getSession().setAttribute("creationDate",su.getCreated().toString());
-			request.getSession().setAttribute("targetUrl",su.getTarget());
-			request.getSession().setAttribute("uniqueVisitors",uniqueVisitors(clickRepository.findByHash(su.getHash())));
-			request.getSession().setAttribute("ownerIP",request.getRemoteAddr());
-			return new ModelAndView("redirect:/" + id + "/moreInfo");
-		} else{
-			logger.error("Someone who isn't the owner of the URL requested more info");
-			MessageHelper.addErrorAttribute(ra,"error.urlshortenerplus.owner",id);
-			return new ModelAndView("redirect:/");
-		}
-	}
-
-	@RequestMapping(value = "/publicity")
-	public ModelAndView loadPublicity(HttpServletRequest request){
-		String idUrl = (String) request.getSession().getAttribute("urlPubli");
-
-		logger.info("Requested new advertisement redirection for id " + idUrl);
-
-		ModelAndView modelAndView = new ModelAndView("publicity");
-		ShortURL l = shortURLRepository.findByKey(idUrl);
-
-		request.getSession().setAttribute("redirectionPublicity", l.getTarget());
-		return modelAndView;
-	}
-
-	@RequestMapping(value = "/obtainPublicityLink")
-	public void loadPublicityContent(HttpServletRequest request, HttpServletResponse response){
-		String redirection = (String) request.getSession().getAttribute("redirectionPublicity");
-
-		logger.info("Requested new redirection after loading publicity to url " + redirection);
-
-		try {
-			PrintWriter out = response.getWriter();
-			out.print(redirection);
-		} catch (IOException e) {
-			logger.error("Error when obtaining printwriter in /obtainPublicityLink");
-		}
-	}
-
 	@RequestMapping(value="/requestStatus", method = RequestMethod.GET)
 	public void checkRequestStatus(@RequestParam("link")String id,
-								   HttpServletRequest request, HttpServletResponse response,
-								   RedirectAttributes ra){
+								   HttpServletRequest request, HttpServletResponse response){
 
 		logger.info("Checking status to redirect " + id);
 
 		try {
 			PrintWriter out = response.getWriter();
-			if(!tooMuchRequests(new Timestamp(System.currentTimeMillis()), extractIP(request), id)){
+			if(!tooMuchRequests(request, id)){
 				out.print("ok");
 			} else {
 				logger.error("Too much requests to hash " + id + " in the same location, throttling API calls");
@@ -101,9 +51,32 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 		}
 	}
 
+	@Override
+	@RequestMapping(value = "/{id:(?!link|index).*}", method = RequestMethod.GET)
+	public Object redirectTo(@PathVariable String id, HttpServletRequest request,
+										RedirectAttributes ra) {
+		logger.info("Requested redirection with hash " + id);
 
+		if(!tooMuchRequests(request,id)){
+			return super.redirectTo(id, request, ra);
+		} else{
+			logger.error("Too much requests found for " + id + " from the same location");
+			MessageHelper.addErrorAttribute(ra,"error.toomuchrequests","");
+			return new ModelAndView("redirect:/");
+		}
 
-	private boolean tooMuchRequests(Timestamp lastClick, String ip, String hash){
+	}
+
+	@Override
+	public ResponseEntity<ShortURL> shortener(@RequestParam("url") String url,
+											  @RequestParam(value = "sponsor", required = false) String sponsor,
+											  HttpServletRequest request, RedirectAttributes ra) {
+		logger.info("Requested new short for uri " + url);
+		return super.shortener(url, sponsor, request, ra);
+	}
+
+	private boolean tooMuchRequests(HttpServletRequest request, String hash){
+		String ip = extractIP(request);
 		List<Click> previousClicks = clickRepository.findByHash(hash);
 
 		SimpleDateFormat yearmonthday = new SimpleDateFormat("yyyy:MM:dd");
@@ -111,6 +84,7 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 		SimpleDateFormat minuteFormat = new SimpleDateFormat("mm");
 		SimpleDateFormat secondFormat = new SimpleDateFormat("ss");
 
+		Timestamp lastClick = new Timestamp(System.currentTimeMillis());
 		String lastClickDate = yearmonthday.format(lastClick);
 		String lastClickHour = hourFormat.format(lastClick);
 		String lastClickMinute = minuteFormat.format(lastClick);
@@ -151,37 +125,5 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 			}else return false;
 
 		} else return false;
-	}
-
-	@Override
-	@RequestMapping(value = "/{id:(?!link|index).*}", method = RequestMethod.GET)
-	public ResponseEntity<?> redirectTo(@PathVariable String id, HttpServletRequest request,
-										RedirectAttributes ra) {
-		logger.info("Requested redirection with hash " + id);
-		return super.redirectTo(id, request, ra);
-	}
-
-	@Override
-	public ResponseEntity<ShortURL> shortener(@RequestParam("url") String url,
-											  @RequestParam(value = "sponsor", required = false) String sponsor,
-											  HttpServletRequest request, RedirectAttributes ra) {
-		logger.info("Requested new short for uri " + url);
-		return super.shortener(url, sponsor, request, ra);
-	}
-
-	private int uniqueVisitors(List<Click> visitantes){
-		if(visitantes.size() != 0){
-			int contador = 1;
-			Click lastVisitor = visitantes.get(0);
-
-			for (Click click: visitantes){
-				if(!lastVisitor.getIp().equals(click.getIp())){
-					//New unique visitor
-					contador++;
-					lastVisitor = click;
-				}
-			}
-			return contador;
-		} else return 0;
 	}
 }

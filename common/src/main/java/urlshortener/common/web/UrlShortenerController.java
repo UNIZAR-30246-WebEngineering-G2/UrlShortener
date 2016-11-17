@@ -49,7 +49,7 @@ public class UrlShortenerController {
 	protected ClickRepository clickRepository;
 
 	@RequestMapping(value = "/{id:(?!link).*}", method = RequestMethod.GET)
-	public ResponseEntity<?> redirectTo(@PathVariable String id,
+	public Object redirectTo(@PathVariable String id,
 										HttpServletRequest request, RedirectAttributes ra) {
 		ShortURL l = shortURLRepository.findByKey(id);
 		if (l != null) {
@@ -60,14 +60,13 @@ public class UrlShortenerController {
 		}
 	}
 
-	private Click createAndSaveClick(String hash, String ip) {
+	private void createAndSaveClick(String hash, String ip) {
 		ArrayList<String> locations = obtainLocation(ip);
 
 		Click cl = new Click(null, hash, new Timestamp(System.currentTimeMillis()),
 				null, null, null, ip, null, locations.get(0), locations.get(1));
 		cl=clickRepository.save(cl);
 		LOG.info(cl!=null?"["+hash+"] saved with id ["+cl.getId()+"]":"["+hash+"] was not saved");
-		return cl;
 	}
 
 	protected ArrayList<String> obtainLocation(String ip){
@@ -80,16 +79,16 @@ public class UrlShortenerController {
 			latitude = String.valueOf(clientLocation.getLatitude());
 			longitude = String.valueOf(clientLocation.getLongitude());
 
-			LOG.info("Latitud del nuevo visitante: " + latitude);
-			LOG.info("Longitud del nuevo visitante: " + longitude);
+			LOG.info("Latitud of new visitor: " + latitude);
+			LOG.info("Longitude of new visitor: " + longitude);
 
 		} else LOG.error("Information about IP " + ip + " not found");
 
-		ArrayList<String> devolver = new ArrayList<>();
-		devolver.add(latitude);
-		devolver.add(longitude);
+		ArrayList<String> locationArray = new ArrayList<>();
+		locationArray.add(latitude);
+		locationArray.add(longitude);
 
-		return devolver;
+		return locationArray;
 	}
 
 	@RequestMapping(value = "/link", method = RequestMethod.POST)
