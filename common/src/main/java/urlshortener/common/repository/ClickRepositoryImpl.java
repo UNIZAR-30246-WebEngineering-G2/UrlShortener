@@ -33,7 +33,7 @@ public class ClickRepositoryImpl implements ClickRepository {
 		@Override
 		public Click mapRow(ResultSet rs, int rowNum) throws SQLException {
 			return new Click(rs.getLong("id"), rs.getString("hash"),
-					rs.getDate("created"), rs.getString("referrer"),
+					rs.getTimestamp("created"), rs.getString("referrer"),
 					rs.getString("browser"), rs.getString("platform"),
 					rs.getString("ip"), rs.getString("country"), rs.getString("latitude"),
 					rs.getString("longitude"));
@@ -76,7 +76,7 @@ public class ClickRepositoryImpl implements ClickRepository {
 									Statement.RETURN_GENERATED_KEYS);
 					ps.setNull(1, Types.BIGINT);
 					ps.setString(2, cl.getHash());
-					ps.setDate(3, cl.getCreated());
+					ps.setTimestamp(3, cl.getCreated());
 					ps.setString(4, cl.getReferrer());
 					ps.setString(5, cl.getBrowser());
 					ps.setString(6, cl.getPlatform());

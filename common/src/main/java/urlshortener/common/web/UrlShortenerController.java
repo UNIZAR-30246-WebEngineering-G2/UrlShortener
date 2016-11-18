@@ -2,6 +2,8 @@ package urlshortener.common.web;
 
 import com.google.common.hash.Hashing;
 
+
+import com.maxmind.geoip2.record.Location;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,9 +23,13 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
+import java.sql.Timestamp;
+
+import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
@@ -34,18 +40,18 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
 public class UrlShortenerController {
-	private static final Logger LOG = LoggerFactory
-			.getLogger(UrlShortenerController.class);
+	private static final Logger LOG = LoggerFactory.getLogger(UrlShortenerController.class);
+
 	private IPService ipService = new IPService();
+
 	@Autowired
 	protected ShortURLRepository shortURLRepository;
-
 	@Autowired
 	protected ClickRepository clickRepository;
 
 	@RequestMapping(value = "/{id:(?!link).*}", method = RequestMethod.GET)
-	public ResponseEntity<?> redirectTo(@PathVariable String id,
-			HttpServletRequest request) {
+	public Object redirectTo(@PathVariable String id,
+										HttpServletRequest request, RedirectAttributes ra) {
 		ShortURL l = shortURLRepository.findByKey(id);
 		if (l != null) {
 			createAndSaveClick(id, extractIP(request));
@@ -56,28 +62,40 @@ public class UrlShortenerController {
 	}
 
 	private void createAndSaveClick(String hash, String ip) {
+		ArrayList<String> locations = obtainLocation(ip);
+
+		Click cl = new Click(null, hash, new Timestamp(System.currentTimeMillis()),
+				null, null, null, ip, null, locations.get(0), locations.get(1));
+		cl=clickRepository.save(cl);
+		LOG.info(cl!=null?"["+hash+"] saved with id ["+cl.getId()+"]":"["+hash+"] was not saved");
+	}
+
+	protected ArrayList<String> obtainLocation(String ip){
 		String latitude = "IP not in DB";
 		String longitude = "IP not in DB";
 
-		if(ipService.obtainLocation(ip) != null){
-			latitude = String.valueOf(ipService.obtainLocation(ip).getLatitude());
-			longitude = String.valueOf(ipService.obtainLocation(ip).getLongitude());
+		Location clientLocation = ipService.obtainLocation(ip);
 
-			LOG.info("Latitud del nuevo visitante: " + latitude);
-			LOG.info("Longitud del nuevo visitante: " + longitude);
+		if(clientLocation != null){
+			latitude = String.valueOf(clientLocation.getLatitude());
+			longitude = String.valueOf(clientLocation.getLongitude());
+
+			LOG.info("Latitud of new visitor: " + latitude);
+			LOG.info("Longitude of new visitor: " + longitude);
 
 		} else LOG.error("Information about IP " + ip + " not found");
 
-		Click cl = new Click(null, hash, new Date(System.currentTimeMillis()),
-				null, null, null, ip, null, latitude, longitude);
-		cl=clickRepository.save(cl);
-		LOG.info(cl!=null?"["+hash+"] saved with id ["+cl.getId()+"]":"["+hash+"] was not saved");
+		ArrayList<String> locationArray = new ArrayList<>();
+		locationArray.add(latitude);
+		locationArray.add(longitude);
+
+		return locationArray;
 	}
 
 	@RequestMapping(value = "/link", method = RequestMethod.POST)
 	public ResponseEntity<ShortURL> shortener(@RequestParam("url") String url,
 											  @RequestParam(value = "sponsor", required = false) String sponsor,
-											  HttpServletRequest request) {
+											  HttpServletRequest request, RedirectAttributes ra) {
 
 		UrlValidator urlValidator = new UrlValidator(new String[] { "http", "https" });
 		if(urlValidator.isValid(url)){
@@ -87,8 +105,7 @@ public class UrlShortenerController {
 			} else{
 				String id = (String) request.getSession().getAttribute("user");
 				if(id == null) id="";
-
-				ShortURL su = createAndSaveIfValid(url, sponsor, id, extractIP(request));
+				ShortURL su = createAndSaveIfValid(url, sponsor, id, extractIP(request),ra);
 				if (su != null) {
 					HttpHeaders h = new HttpHeaders();
 					h.setLocation(su.getUri());
@@ -111,7 +128,7 @@ public class UrlShortenerController {
 		}
 	}
 
-	private String extractIP(HttpServletRequest request) {
+	protected String extractIP(HttpServletRequest request) {
 		return request.getRemoteAddr();
 	}
 
@@ -132,7 +149,7 @@ public class UrlShortenerController {
 	}
 
 	private ShortURL createAndSaveIfValid(String url, String sponsor,
-										  String owner, String ip) {
+										  String owner, String ip, RedirectAttributes ra) {
 
 		String id = Hashing.murmur3_32()
 					.hashString(url, StandardCharsets.UTF_8).toString();
@@ -140,7 +157,7 @@ public class UrlShortenerController {
 		su = new ShortURL(id, url,
 				linkTo(
 						methodOn(UrlShortenerController.class).redirectTo(
-								id, null)).toUri(), sponsor, new Date(
+								id, null,ra)).toUri(), sponsor, new Date(
 				System.currentTimeMillis()), owner,
 				HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
 
