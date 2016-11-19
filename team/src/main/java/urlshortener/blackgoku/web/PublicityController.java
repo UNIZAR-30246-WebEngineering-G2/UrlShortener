@@ -26,12 +26,14 @@ public class PublicityController{
 
     @RequestMapping(value = "/publicity", method = RequestMethod.GET)
     public ModelAndView loadPublicity(HttpServletRequest request, RedirectAttributes ra){
-        String idUrl = (String) request.getSession().getAttribute("urlPubli");
+        String idUrl = (String) request.getSession().getAttribute("target");
 
         if(idUrl != null){
             logger.info("Requested new advertisement redirection for id " + idUrl);
 
             ModelAndView modelAndView = new ModelAndView("publicity");
+            modelAndView.addObject("timePublicity", request.getSession().getAttribute("timePublicity"));
+            modelAndView.addObject("urlPublicity", request.getSession().getAttribute("urlPublicity"));
             ShortURL l = shortURLRepository.findByKey(idUrl);
 
             request.getSession().setAttribute("redirectionPublicity", l.getTarget());

@@ -9,6 +9,22 @@
 	<script type="text/javascript" src="webjars/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="/js/app.js"></script>
 	<script type="text/javascript" src="/js/requests.js"></script>
+	<script language="JavaScript">
+		function check(checkbox) {
+			if (checkbox.checked){
+				document.getElementById('publicity-url').style.display='block';
+				document.getElementById('time-publicity').style.display='block';
+				document.getElementById('textTimePublicity').style.display='block';
+			}
+			else{
+				document.getElementById('publicity-url').style.display='none';
+				document.getElementById('time-publicity').style.display='none';
+				document.getElementById('textTimePublicity').style.display='none';
+			}
+
+		}
+
+	</script>
 </head>
 <body>
 
@@ -37,7 +53,21 @@
 					</div>
 
 					<div class="checkbox">
-						<label><input type="checkbox" value="yes" name="sponsor"/>Select to show ads</label>
+						<label><input type="checkbox" value="yes" name="sponsor"  id="sponsor" onchange="check(this)"/>Select to show ads</label>
+					</div>
+					<br/>
+					<div class= "input-group input-group-lg col-sm-offset-4 col-sm-4">
+						<input type="text" class="center-block form-control input-lg"
+							   placeholder="Enter a URL of publicity"
+							   name="publicity-url" id="publicity-url" style="display:none"/>
+					</div>
+					<br/>
+					<div class="input-group input-group-lg col-sm-offset-4 col-sm-4">
+						<span id="textTimePublicity" style="display:none">Enter a time to view publicity:
+							<input placeholder="Enter a time" type="number" name="time-publicity"
+								   class="center-block form-control input-lg" id="time-publicity"
+								   min="0" step="1" value="0" style="display:none"/>
+						</span>
 					</div>
 				</form>
 			</div>
