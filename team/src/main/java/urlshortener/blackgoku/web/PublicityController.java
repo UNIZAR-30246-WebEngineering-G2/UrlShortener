@@ -26,7 +26,7 @@ public class PublicityController{
 
     @RequestMapping(value = "/publicity", method = RequestMethod.GET)
     public ModelAndView loadPublicity(HttpServletRequest request, RedirectAttributes ra){
-        String idUrl = (String) request.getSession().getAttribute("urlPubli");
+        String idUrl = (String) request.getSession().getAttribute("target");
 
         if(idUrl != null){
             logger.info("Requested new advertisement redirection for id " + idUrl);

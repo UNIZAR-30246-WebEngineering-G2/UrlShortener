@@ -23,6 +23,8 @@ CREATE TABLE SHORTURL(
 	SAFE		BOOLEAN,						-- Safe target
 	IP			VARCHAR(20),				-- IP
 	COUNTRY		VARCHAR(50),					-- Country
+	TIMEPUBLICITY INTEGER,        -- Time of publicity
+	URLPUBLICITY VARCHAR (1024)   -- Publicity URL
 );
 
 -- Click

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <title>Advertisement</title>
@@ -16,8 +17,12 @@
         <div class="col-lg-12 text-center">
             <h1>This is an advertisement page!</h1>
             <br/>
-            <h2>You will be redirected to your requested page in <span id="time">10</span> seconds</h2>
+            <h2>You will be redirected to your requested page in <span id="time" th:text = "${session.timePublicity}">10</span> seconds</h2>
         </div>
     </div>
+
+    <iframe th:src="${session.urlPublicity}">
+        <p>Your browser does not support iframes.</p>
+    </iframe>
 </body>
 </html>
