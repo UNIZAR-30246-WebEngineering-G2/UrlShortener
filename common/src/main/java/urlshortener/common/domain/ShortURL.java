@@ -15,10 +15,12 @@ public class ShortURL {
 	private Boolean safe;
 	private String ip;
 	private String country;
+	private Integer timePublicity;
+	private String urlPublicity;
 
 	public ShortURL(String hash, String target, URI uri, String sponsor,
-			Date created, String owner, Integer mode, Boolean safe, String ip,
-			String country) {
+					Date created, String owner, Integer mode, Boolean safe, String ip,
+					String country, Integer timePublicity, String urlPublicity) {
 		this.hash = hash;
 		this.target = target;
 		this.uri = uri;
@@ -29,6 +31,8 @@ public class ShortURL {
 		this.safe = safe;
 		this.ip = ip;
 		this.country = country;
+		this.timePublicity = timePublicity;
+		this.urlPublicity = urlPublicity;
 	}
 
 	public ShortURL() {
@@ -77,5 +81,9 @@ public class ShortURL {
 	public String getCountry() {
 		return country;
 	}
+
+	public Integer getTimePublicity() { return timePublicity; }
+
+	public String getUrlPublicity(){ return urlPublicity;}
 
 }

@@ -95,6 +95,8 @@ public class UrlShortenerController {
 	@RequestMapping(value = "/link", method = RequestMethod.POST)
 	public ResponseEntity<ShortURL> shortener(@RequestParam("url") String url,
 											  @RequestParam(value = "sponsor", required = false) String sponsor,
+											  @RequestParam(value = "publicity-url", required = false) String urlPublicity,
+											  @RequestParam(value = "time-publicity", required = false) Integer timePublicity,
 											  HttpServletRequest request, RedirectAttributes ra) {
 
 		UrlValidator urlValidator = new UrlValidator(new String[] { "http", "https" });
@@ -105,7 +107,8 @@ public class UrlShortenerController {
 			} else{
 				String id = (String) request.getSession().getAttribute("user");
 				if(id == null) id="";
-				ShortURL su = createAndSaveIfValid(url, sponsor, id, extractIP(request),ra);
+
+				ShortURL su = createAndSaveIfValid(url, sponsor, urlPublicity, timePublicity ,id, extractIP(request),ra);
 				if (su != null) {
 					HttpHeaders h = new HttpHeaders();
 					h.setLocation(su.getUri());
@@ -137,7 +140,9 @@ public class UrlShortenerController {
 		if(l.getSponsor() != null){
 			HttpHeaders h = new HttpHeaders();
 			h.setLocation(URI.create("/publicity"));
-			request.getSession().setAttribute("urlPubli",l.getHash());
+			request.getSession().setAttribute("timePublicity", l.getTimePublicity());
+			request.getSession().setAttribute("urlPublicity",l.getUrlPublicity());
+			request.getSession().setAttribute("target",l.getHash());
 			return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
 
 		}
@@ -148,7 +153,7 @@ public class UrlShortenerController {
 		}
 	}
 
-	private ShortURL createAndSaveIfValid(String url, String sponsor,
+	private ShortURL createAndSaveIfValid(String url, String sponsor, String urlPublicity, Integer timePublicity,
 										  String owner, String ip, RedirectAttributes ra) {
 
 		String id = Hashing.murmur3_32()
@@ -159,7 +164,7 @@ public class UrlShortenerController {
 						methodOn(UrlShortenerController.class).redirectTo(
 								id, null,ra)).toUri(), sponsor, new Date(
 				System.currentTimeMillis()), owner,
-				HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null);
+				HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null, timePublicity, urlPublicity);
 
 		return shortURLRepository.save(su);
 

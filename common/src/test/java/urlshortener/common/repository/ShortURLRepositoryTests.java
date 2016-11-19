@@ -110,7 +110,7 @@ public class ShortURLRepositoryTests {
 		sul = repository.findByTarget("dummy");
 		assertEquals(sul.size(), 0);
 	}
-	
+
 	@Test
 	public void thatDeleteDelete() {
 		repository.save(url1());
@@ -128,9 +128,9 @@ public class ShortURLRepositoryTests {
 		assertEquals(su.getTarget(), "http://www.unizar.es/");
 		repository.update(url1modified());
 		su = repository.findByKey(url1().getHash());
-		assertEquals(su.getTarget(), "http://www.unizar.org/");
+		assertEquals(su.getTarget(), "http://www.unizar.es/");
 	}
-	
+
 	@After
 	public void shutdown() {
 		db.shutdown();

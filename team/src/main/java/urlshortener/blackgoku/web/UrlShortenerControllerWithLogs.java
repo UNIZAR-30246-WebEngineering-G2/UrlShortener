@@ -69,9 +69,11 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 	@Override
 	public ResponseEntity<ShortURL> shortener(@RequestParam("url") String url,
 											  @RequestParam(value = "sponsor", required = false) String sponsor,
+											  @RequestParam(value = "publicity-url", required = false) String urlPublicity,
+											  @RequestParam(value = "time-publicity", required = false) Integer timePublicity,
 											  HttpServletRequest request, RedirectAttributes ra) {
 		logger.info("Requested new short for uri " + url);
-		return super.shortener(url, sponsor, request, ra);
+		return super.shortener(url, sponsor, urlPublicity, timePublicity, request, ra);
 	}
 
 	private boolean tooMuchRequests(HttpServletRequest request, String hash){
