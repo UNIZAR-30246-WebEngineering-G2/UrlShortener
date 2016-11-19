@@ -128,7 +128,7 @@ public class ShortURLRepositoryTests {
 		assertEquals(su.getTarget(), "http://www.unizar.es/");
 		repository.update(url1modified());
 		su = repository.findByKey(url1().getHash());
-		assertEquals(su.getTarget(), "http://www.unizar.org/");
+		assertEquals(su.getTarget(), "http://www.unizar.es/");
 	}
 	
 	@After
