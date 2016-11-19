@@ -9,6 +9,11 @@
     <script type="text/javascript" src="webjars/jquery/2.1.4/jquery.min.js"></script>
     <script type="text/javascript" src="webjars/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/js/publicity.js"></script>
+    <style type="text/css">
+        *{padding:0;margin:0;}
+        html,body{height:100%;}
+        iframe{height:100%;width:100%;display:block;}
+    </style>
 </head>
 
 <body>
@@ -21,7 +26,7 @@
         </div>
     </div>
 
-    <iframe th:src="${session.urlPublicity}">
+    <iframe th:src="${session.urlPublicity}" frameborder="0" scrolling="auto">
         <p>Your browser does not support iframes.</p>
     </iframe>
 </body>

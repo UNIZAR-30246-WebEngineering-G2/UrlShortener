@@ -64,7 +64,6 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 			MessageHelper.addErrorAttribute(ra,"error.toomuchrequests","");
 			return new ModelAndView("redirect:/");
 		}
-
 	}
 
 	@Override
@@ -124,7 +123,7 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 
 				return (lastClickHour.equals(beforeLastClickHour)) && (lastClickMinute.equals(beforeLastClickMinute))
 						&& ((aux1 - aux2) <= SECONDS_FOR_REQUESTS);
-			}else return false;
+			} else return false;
 
 		} else return false;
 	}

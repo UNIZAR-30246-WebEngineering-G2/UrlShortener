@@ -2,6 +2,7 @@ package urlshortener.common.web;
 
 import com.google.common.hash.Hashing;
 
+
 import com.maxmind.geoip2.record.Location;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
