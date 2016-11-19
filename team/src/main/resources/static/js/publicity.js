@@ -20,7 +20,7 @@ function startTimer(duration, display) {
 }
 
 jQuery(function ($) {
-    var tenseconds = timePublicity,
+    var tenseconds = $('#time').text(),
         display = $('#time');
     startTimer(tenseconds, display);
 });

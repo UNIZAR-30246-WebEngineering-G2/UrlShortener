@@ -32,8 +32,6 @@ public class PublicityController{
             logger.info("Requested new advertisement redirection for id " + idUrl);
 
             ModelAndView modelAndView = new ModelAndView("publicity");
-            modelAndView.addObject("timePublicity", request.getSession().getAttribute("timePublicity"));
-            modelAndView.addObject("urlPublicity", request.getSession().getAttribute("urlPublicity"));
             ShortURL l = shortURLRepository.findByKey(idUrl);
 
             request.getSession().setAttribute("redirectionPublicity", l.getTarget());
