@@ -1,12 +1,12 @@
 package urlshortener.common.domain;
 
-import java.sql.Date;
+import java.sql.Timestamp;
 
 public class Click {
 
 	private Long id;
 	private String hash;
-	private Date created;
+	private Timestamp created;
 	private String referrer;
 	private String browser;
 	private String platform;
@@ -15,7 +15,7 @@ public class Click {
 	private String latitude;
 	private String longitude;
 
-	public Click(Long id, String hash, Date created, String referrer,
+	public Click(Long id, String hash, Timestamp created, String referrer,
 			String browser, String platform, String ip, String country,
 			 String latitude, String longitude) {
 		this.id = id;
@@ -38,7 +38,7 @@ public class Click {
 		return hash;
 	}
 
-	public Date getCreated() {
+	public Timestamp getCreated() {
 		return created;
 	}
 

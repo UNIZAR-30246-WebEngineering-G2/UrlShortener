@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import urlshortener.blackgoku.domain.MessageHelper;
+import urlshortener.common.domain.MessageHelper;
 import urlshortener.blackgoku.domain.User;
 import urlshortener.blackgoku.repository.UserRepository;
 

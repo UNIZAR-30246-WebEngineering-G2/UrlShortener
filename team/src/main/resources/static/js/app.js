@@ -1,5 +1,5 @@
 $(document).ready(
-    function() {
+    function () {
         $("#shortener").submit(
             function(event) {
                 event.preventDefault();
@@ -9,7 +9,7 @@ $(document).ready(
                     data : $(this).serialize(),
                     success : function(msg) {
                         $("#result").html(
-                            "<div class='alert alert-success lead'><a target='_blank' href='"
+                            "<div class='alert alert-success lead'><a target='_blank' id='idLink' onclick='check(event);' href='"
                             + msg.uri
                             + "'>"
                             + msg.uri
@@ -19,9 +19,9 @@ $(document).ready(
                         if( xhr.status === 409){
                             var json = JSON.parse(xhr.responseText);
                             $("#result").html(
-                                "<div class='alert alert-danger lead'>Error: the shortened URL already" +
+                                "<div class='alert alert-warning lead'>Error: the shortened URL already" +
                                 " exists, and therefore you can't be the owner. You can still use it though: " +
-                                "<a target='_blank' href='"
+                                "<a target='_blank' id='idLink' onclick='check(event);' href='"
                                 + json.uri
                                 + "'>"
                                 + json.uri
