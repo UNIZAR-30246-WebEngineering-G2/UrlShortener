@@ -24,9 +24,12 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.Timestamp;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.groups.ConvertGroup;
 
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import urlshortener.common.domain.ShortURL;
@@ -54,7 +57,7 @@ public class UrlShortenerController {
 		ShortURL l = shortURLRepository.findByKey(id);
 		if (l != null) {
 			createAndSaveClick(id, extractIP(request));
-			return createSuccessfulRedirectToResponse(l, request);
+			return createSuccessfulRedirectToResponse(l, request, id);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
@@ -134,9 +137,50 @@ public class UrlShortenerController {
 		return request.getRemoteAddr();
 	}
 
-	private ResponseEntity<?> createSuccessfulRedirectToResponse(ShortURL l, HttpServletRequest request) {
+	private ResponseEntity<?> createSuccessfulRedirectToResponse(ShortURL l, HttpServletRequest request, String id) {
 
-		if(l.getSponsor() != null){
+		List<Click> clicks = clickRepository.findByHash(id);
+		for(Click c : clicks){
+			LOG.info("Timestamps: "+c.getCreated().toString());
+		}
+		boolean lessThanTimeEstablished = false;
+        boolean sameUser = false;
+
+        if (clicks.size() >= 2) {
+            SimpleDateFormat yearmonthday = new SimpleDateFormat("yyyy:MM:dd");
+            SimpleDateFormat hourFormat = new SimpleDateFormat("HH");
+            SimpleDateFormat minuteFormat = new SimpleDateFormat("mm");
+            SimpleDateFormat secondFormat = new SimpleDateFormat("ss");
+
+            Timestamp beforeLastClick = new Timestamp(clicks.get(clicks.size()-2).getCreated().getTime());
+            String beforeLastClickDate = yearmonthday.format(beforeLastClick);
+            String beforeLastClickHour = hourFormat.format(beforeLastClick);
+            String beforeLastClickMinute = minuteFormat.format(beforeLastClick);
+            String beforeLastClickSeconds = secondFormat.format(beforeLastClick);
+
+            String beforeLastClickLatitude = clicks.get(clicks.size()-2).getLatitude();
+            String beforeLastClickLongitude = clicks.get(clicks.size()-2).getLongitude();
+
+            //LAST CLICK
+
+            Timestamp lastClick = new Timestamp(clicks.get(clicks.size()-1).getCreated().getTime());
+            String lastClickDate = yearmonthday.format(lastClick);
+            String lastClickHour = hourFormat.format(lastClick);
+            String lastClickMinute = minuteFormat.format(lastClick);
+            String lastClickSeconds = secondFormat.format(lastClick);
+
+            String lastClickLatitude = clicks.get(clicks.size()-1).getLatitude();
+            String lastClickLongitude = clicks.get(clicks.size()-1).getLongitude();
+
+            lessThanTimeEstablished = beforeLastClickDate.equals(lastClickDate) &&
+                    beforeLastClickHour.equals(lastClickHour) &&
+                    beforeLastClickMinute.equals(lastClickMinute) &&
+                    (Integer.parseInt(lastClickSeconds)-Integer.parseInt(beforeLastClickSeconds))<30; //TODO cambiar si se decide otro tiempo
+            sameUser = beforeLastClickLatitude.equals(lastClickLatitude) &&
+                    beforeLastClickLongitude.equals(lastClickLongitude);
+        }
+
+		if(l.getSponsor() != null && !lessThanTimeEstablished && !sameUser){
 			HttpHeaders h = new HttpHeaders();
 			h.setLocation(URI.create("/publicity"));
 			request.getSession().setAttribute("timePublicity", l.getTimePublicity());
