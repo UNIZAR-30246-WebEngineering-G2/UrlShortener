@@ -4,9 +4,11 @@ import com.google.common.hash.Hashing;
 
 import com.maxmind.geoip2.record.Location;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +30,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.groups.ConvertGroup;
 
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -138,50 +142,41 @@ public class UrlShortenerController {
 	}
 
 	private ResponseEntity<?> createSuccessfulRedirectToResponse(ShortURL l, HttpServletRequest request, String id) {
-
-		List<Click> clicks = clickRepository.findByHash(id);
-		for(Click c : clicks){
-			LOG.info("Timestamps: "+c.getCreated().toString());
-		}
 		boolean lessThanTimeEstablished = false;
-        boolean sameUser = false;
-
-        if (clicks.size() >= 2) {
+        final int TIME_ESTABLISHED = 30;
+        long time;
+        HttpHeaders h = new HttpHeaders();
+        Cookie click = findCookie(id,request);
+		if(click == null){
+            h.set("Set-Cookie",id+"="+System.currentTimeMillis());
+        } else {
             SimpleDateFormat yearmonthday = new SimpleDateFormat("yyyy:MM:dd");
             SimpleDateFormat hourFormat = new SimpleDateFormat("HH");
             SimpleDateFormat minuteFormat = new SimpleDateFormat("mm");
             SimpleDateFormat secondFormat = new SimpleDateFormat("ss");
 
-            Timestamp beforeLastClick = new Timestamp(clicks.get(clicks.size()-2).getCreated().getTime());
+            Timestamp beforeLastClick = new Timestamp(Long.parseLong(click.getValue()));
             String beforeLastClickDate = yearmonthday.format(beforeLastClick);
             String beforeLastClickHour = hourFormat.format(beforeLastClick);
             String beforeLastClickMinute = minuteFormat.format(beforeLastClick);
             String beforeLastClickSeconds = secondFormat.format(beforeLastClick);
 
-            String beforeLastClickLatitude = clicks.get(clicks.size()-2).getLatitude();
-            String beforeLastClickLongitude = clicks.get(clicks.size()-2).getLongitude();
+            time = System.currentTimeMillis();
 
-            //LAST CLICK
-
-            Timestamp lastClick = new Timestamp(clicks.get(clicks.size()-1).getCreated().getTime());
+            Timestamp lastClick = new Timestamp(time);
             String lastClickDate = yearmonthday.format(lastClick);
             String lastClickHour = hourFormat.format(lastClick);
             String lastClickMinute = minuteFormat.format(lastClick);
             String lastClickSeconds = secondFormat.format(lastClick);
 
-            String lastClickLatitude = clicks.get(clicks.size()-1).getLatitude();
-            String lastClickLongitude = clicks.get(clicks.size()-1).getLongitude();
-
             lessThanTimeEstablished = beforeLastClickDate.equals(lastClickDate) &&
                     beforeLastClickHour.equals(lastClickHour) &&
                     beforeLastClickMinute.equals(lastClickMinute) &&
-                    (Integer.parseInt(lastClickSeconds)-Integer.parseInt(beforeLastClickSeconds))<30; //TODO cambiar si se decide otro tiempo
-            sameUser = beforeLastClickLatitude.equals(lastClickLatitude) &&
-                    beforeLastClickLongitude.equals(lastClickLongitude);
+                    (Integer.parseInt(lastClickSeconds)-Integer.parseInt(beforeLastClickSeconds))<TIME_ESTABLISHED;
+            h.set("Set-Cookie",id+"="+time);
         }
 
-		if(l.getSponsor() != null && !lessThanTimeEstablished && !sameUser){
-			HttpHeaders h = new HttpHeaders();
+		if(l.getSponsor() != null && !lessThanTimeEstablished){
 			h.setLocation(URI.create("/publicity"));
 			request.getSession().setAttribute("timePublicity", l.getTimePublicity());
 			request.getSession().setAttribute("urlPublicity",l.getUrlPublicity());
@@ -190,11 +185,27 @@ public class UrlShortenerController {
 
 		}
 		else{
-			HttpHeaders h = new HttpHeaders();
 			h.setLocation(URI.create(l.getTarget()));
 			return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
 		}
 	}
+
+	private Cookie findCookie(String value, HttpServletRequest request){
+        Cookie[] cookies = request.getCookies();
+        int i = 0;
+        boolean found= false;
+        while(!found && i<cookies.length){
+            if(cookies[i].getName().equals(value)){
+                found = true;
+            }
+            i++;
+        }
+        if(found){
+            return cookies[i-1];
+        } else {
+            return null;
+        }
+    }
 
 	private ShortURL createAndSaveIfValid(String url, String sponsor, String urlPublicity, Integer timePublicity,
 										  String owner, String ip, RedirectAttributes ra) {
