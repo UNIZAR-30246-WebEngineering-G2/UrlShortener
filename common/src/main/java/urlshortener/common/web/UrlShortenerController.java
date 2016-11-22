@@ -51,8 +51,7 @@ public class UrlShortenerController {
 	public Object redirectTo(@PathVariable String id,
 										HttpServletRequest request, RedirectAttributes ra) {
 		ShortURL l = shortURLRepository.findByKey(id);
-        boolean active = l.getActive();
-		if (l != null && active) {
+		if (l != null && l.getActive()) {
 			createAndSaveClick(id, extractIP(request));
 			return createSuccessfulRedirectToResponse(l, request, id);
 		} else {
