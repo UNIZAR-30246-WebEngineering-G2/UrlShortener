@@ -10,6 +10,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import urlshortener.common.domain.Click;
 import urlshortener.common.domain.MessageHelper;
 import urlshortener.common.domain.ShortURL;
+import urlshortener.common.web.CheckUrls;
 import urlshortener.common.web.UrlShortenerController;
 
 

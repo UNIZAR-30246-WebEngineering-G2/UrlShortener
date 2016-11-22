@@ -1,4 +1,4 @@
-package urlshortener.blackgoku.web;
+package urlshortener.common.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,9 +10,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.Calendar;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by AsierHandball on 17/11/2016.
@@ -20,16 +18,12 @@ import java.util.concurrent.LinkedBlockingDeque;
 public class CheckerThread implements Runnable{
 
     private ShortURLRepository shortURLRepository;
-    //private BlockingQueue<ShortURL> queue;
-    private BlockingDeque<ShortURL> queue;
+    private LinkedBlockingQueue<ShortURL> queue;
 
     private int id;
 
-    private static final Logger logger = LoggerFactory.getLogger(CheckerThread.class);
 
-
-    public CheckerThread(int id, ShortURLRepository shortURLRepository, BlockingDeque<ShortURL> queue){
-        logger.info(shortURLRepository.toString()+"  "+queue.toString());
+    public CheckerThread(int id, ShortURLRepository shortURLRepository, LinkedBlockingQueue<ShortURL> queue){
         this.shortURLRepository = shortURLRepository;
         this.queue = queue;
         this.id = id;
@@ -39,7 +33,7 @@ public class CheckerThread implements Runnable{
         while (true){
             try{
 
-                ShortURL su = queue.takeFirst();
+                ShortURL su = queue.take();
                 URL urlServidor = null;
                 try{
                     urlServidor = new URL(su.getTarget());
@@ -54,7 +48,7 @@ public class CheckerThread implements Runnable{
                 su.setLastChange(new Timestamp(Calendar.getInstance().getTime().getTime()));
                 su.setUpdate_status(0);
                 shortURLRepository.update(su);
-                queue.putLast(su);
+                queue.put(su);
                 Thread.sleep(100);
             } catch(InterruptedException e){
                 e.printStackTrace();
