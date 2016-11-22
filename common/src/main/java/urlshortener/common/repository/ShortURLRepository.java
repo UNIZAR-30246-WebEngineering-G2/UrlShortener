@@ -1,5 +1,6 @@
 package urlshortener.common.repository;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 import urlshortener.common.domain.ShortURL;
@@ -21,5 +22,7 @@ public interface ShortURLRepository {
 	Long count();
 
 	List<ShortURL> list(Long limit, Long offset);
+
+	List<ShortURL> listToUpdate(Timestamp minTimestamp);
 
 }
