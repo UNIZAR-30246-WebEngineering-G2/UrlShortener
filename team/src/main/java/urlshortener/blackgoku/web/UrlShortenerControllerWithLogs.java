@@ -2,23 +2,19 @@ package urlshortener.blackgoku.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import urlshortener.common.domain.MessageHelper;
 import urlshortener.common.domain.Click;
+import urlshortener.common.domain.MessageHelper;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.web.UrlShortenerController;
 
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Timestamp;
@@ -32,7 +28,11 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 	private static final Logger logger = LoggerFactory.getLogger(UrlShortenerControllerWithLogs.class);
 	private final Integer SECONDS_FOR_REQUESTS = 10;
 
-	@RequestMapping(value="/requestStatus", method = RequestMethod.GET)
+    @Autowired
+    protected CheckUrls checkUrls;
+
+
+    @RequestMapping(value="/requestStatus", method = RequestMethod.GET)
 	public void checkRequestStatus(@RequestParam("link")String id,
 								   HttpServletRequest request, HttpServletResponse response){
 
@@ -72,9 +72,9 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 											  @RequestParam(value = "sponsor", required = false) String sponsor,
 											  @RequestParam(value = "publicity-url", required = false) String urlPublicity,
 											  @RequestParam(value = "time-publicity", required = false) Integer timePublicity,
-											  HttpServletRequest request, RedirectAttributes ra) {
-		logger.info("Requested new short for uri " + url);
-		return super.shortener(url, sponsor, urlPublicity, timePublicity, request, ra);
+											  HttpServletRequest request, RedirectAttributes ra, CheckUrls cu) {
+        logger.info("Requested new short for uri " + url);
+		return super.shortener(url, sponsor, urlPublicity, timePublicity, request, ra,checkUrls);
 	}
 
 	private boolean tooMuchRequests(HttpServletRequest request, String hash){

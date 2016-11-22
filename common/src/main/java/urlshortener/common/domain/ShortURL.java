@@ -2,88 +2,152 @@ package urlshortener.common.domain;
 
 import java.net.URI;
 import java.sql.Date;
+import java.sql.Timestamp;
 
-public class ShortURL {
+public class ShortURL implements Comparable{
 
-	private String hash;
-	private String target;
-	private URI uri;
-	private String sponsor;
-	private Date created;
-	private String owner;
-	private Integer mode;
-	private Boolean safe;
-	private String ip;
-	private String country;
-	private Integer timePublicity;
-	private String urlPublicity;
+    private String hash;
+    private String target;
+    private URI uri;
+    private String sponsor;
+    private Date created;
+    private String owner;
+    private Integer mode;
+    private Boolean safe;
+    private String ip;
+    private String country;
+    private Integer timePublicity;
+    private String urlPublicity;
+    private boolean active;
+    private int update_status;        // 0 = pending -- 1=updating
+    private Timestamp last_change;
 
-	public ShortURL(String hash, String target, URI uri, String sponsor,
-					Date created, String owner, Integer mode, Boolean safe, String ip,
-					String country, Integer timePublicity, String urlPublicity) {
-		this.hash = hash;
-		this.target = target;
-		this.uri = uri;
-		this.sponsor = sponsor;
-		this.created = created;
-		this.owner = owner;
-		this.mode = mode;
-		this.safe = safe;
-		this.ip = ip;
-		this.country = country;
-		this.timePublicity = timePublicity;
-		this.urlPublicity = urlPublicity;
-	}
+    public ShortURL(String hash, String target, URI uri, String sponsor,
+                    Date created, String owner, Integer mode, Boolean safe, String ip,
+                    String country, Integer timePublicity, String urlPublicity, Timestamp last_change, boolean active, int update_status) {
+        this.hash = hash;
+        this.target = target;
+        this.uri = uri;
+        this.sponsor = sponsor;
+        this.created = created;
+        this.owner = owner;
+        this.mode = mode;
+        this.safe = safe;
+        this.ip = ip;
+        this.country = country;
+        this.timePublicity = timePublicity;
+        this.urlPublicity = urlPublicity;
+        this.last_change = last_change;
+        this.active = active;
+        this.update_status = update_status;
+    }
 
-	public ShortURL() {
-	}
+    public ShortURL(String hash, String target, URI uri, String sponsor,
+                    Date created, String owner, Integer mode, Boolean safe, String ip,
+                    String country, Integer timePublicity, String urlPublicity, boolean active) {
+        this.hash = hash;
+        this.target = target;
+        this.uri = uri;
+        this.sponsor = sponsor;
+        this.created = created;
+        this.owner = owner;
+        this.mode = mode;
+        this.safe = safe;
+        this.ip = ip;
+        this.country = country;
+        this.timePublicity = timePublicity;
+        this.urlPublicity = urlPublicity;
+        this.active = active;
+    }
 
-	public String getHash() {
-		return hash;
-	}
+    public ShortURL() {
+    }
 
-	public String getTarget() {
-		return target;
-	}
+    public String getHash() {
+        return hash;
+    }
 
-	public URI getUri() {
-		return uri;
-	}
+    public String getTarget() {
+        return target;
+    }
 
-	public Date getCreated() {
-		return created;
-	}
+    public URI getUri() {
+        return uri;
+    }
 
-	public String getOwner() {
-		return owner;
-	}
+    public Date getCreated() {
+        return created;
+    }
 
-	public void setOwner(String owner) {
-		this.owner = owner;
-	}
+    public String getOwner() {
+        return owner;
+    }
 
-	public Integer getMode() {
-		return mode;
-	}
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
 
-	public String getSponsor() {
-		return sponsor;
-	}
+    public Integer getMode() {
+        return mode;
+    }
 
-	public Boolean getSafe() {
-		return safe;
-	}
+    public String getSponsor() {
+        return sponsor;
+    }
 
-	public String getIP() {
-		return ip;
-	}
+    public Boolean getSafe() {
+        return safe;
+    }
 
-	public String getCountry() {
-		return country;
-	}
+    public String getIP() {
+        return ip;
+    }
 
-	public Integer getTimePublicity() { return timePublicity; }
+    public String getCountry() {
+        return country;
+    }
 
-	public String getUrlPublicity(){ return urlPublicity;}
+    public Integer getTimePublicity() {
+        return timePublicity;
+    }
 
+    public String getUrlPublicity() {
+        return urlPublicity;
+    }
+
+    public Timestamp getLastChange() {
+        return last_change;
+    }
+
+    public boolean getActive() {
+        return active;
+    }
+
+    public int getUpdate_status() {
+        return update_status;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public void setLastChange(Timestamp last_change) {
+        this.last_change = last_change;
+    }
+
+    public void setUpdate_status(int update_status) {
+        this.update_status = update_status;
+    }
+
+    public int compareTo(Object o) {
+        ShortURL nu = (ShortURL) o;
+        if (nu.update_status == this.update_status) {
+            return 1;
+        } else if (nu.update_status < this.update_status) {
+            return -1;
+        } else {
+            return 1;
+        }
+
+    }
 }
