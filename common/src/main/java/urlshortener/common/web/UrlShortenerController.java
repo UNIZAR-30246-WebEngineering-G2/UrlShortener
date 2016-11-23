@@ -4,11 +4,9 @@ import com.google.common.hash.Hashing;
 
 import com.maxmind.geoip2.record.Location;
 import org.apache.commons.validator.routines.UrlValidator;
-import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +22,10 @@ import java.sql.Timestamp;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Calendar;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.groups.ConvertGroup;
 
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import urlshortener.common.domain.ShortURL;
@@ -55,7 +51,7 @@ public class UrlShortenerController {
 	public Object redirectTo(@PathVariable String id,
 										HttpServletRequest request, RedirectAttributes ra) {
 		ShortURL l = shortURLRepository.findByKey(id);
-		if (l != null) {
+		if (l != null && l.getActive()) {
 			createAndSaveClick(id, extractIP(request));
 			return createSuccessfulRedirectToResponse(l, request, id);
 		} else {
@@ -99,34 +95,36 @@ public class UrlShortenerController {
 											  @RequestParam(value = "sponsor", required = false) String sponsor,
 											  @RequestParam(value = "publicity-url", required = false) String urlPublicity,
 											  @RequestParam(value = "time-publicity", required = false) Integer timePublicity,
-											  HttpServletRequest request, RedirectAttributes ra) {
-
+											  HttpServletRequest request, RedirectAttributes ra, CheckUrls checkUrls) {
 		UrlValidator urlValidator = new UrlValidator(new String[] { "http", "https" });
 		if(urlValidator.isValid(url)){
-			if(!isReachable(url)){
-				LOG.error("The url provided couldn't be reached, can't shorten it");
-				return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
-			} else{
+
 				String id = (String) request.getSession().getAttribute("user");
 				if(id == null) id="";
-
 				ShortURL su = createAndSaveIfValid(url, sponsor, urlPublicity, timePublicity ,id, extractIP(request),ra);
 				if (su != null) {
-					HttpHeaders h = new HttpHeaders();
+                    HttpHeaders h = new HttpHeaders();
 					h.setLocation(su.getUri());
 					if(!su.getOwner().equals(id)){
 						//Shortened URL already exists
 						LOG.error("Extended URL requested has already been shortened");
 						return new ResponseEntity<>(su, h,HttpStatus.CONFLICT);
 					} else{
-						return new ResponseEntity<>(su, h, HttpStatus.CREATED);
+                        boolean active = isReachable(url);
+                        su.setActive(active);
+                        checkUrls.agnadirUrl(su);
+                        su.setLastChange(new Timestamp(Calendar.getInstance().getTime().getTime()));
+                        if(su.getActive()){
+                            return new ResponseEntity<>(su, h, HttpStatus.CREATED);
+                        } else return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
+
 					}
 				}
 				else {
 					LOG.error("Couldn't save new shortened URL");
 					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 				}
-			}
+
 		} else{
 			LOG.error("The entered URL is not valid");
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -218,7 +216,8 @@ public class UrlShortenerController {
 						methodOn(UrlShortenerController.class).redirectTo(
 								id, null,ra)).toUri(), sponsor, new Date(
 				System.currentTimeMillis()), owner,
-				HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null, timePublicity, urlPublicity);
+				HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null,timePublicity, urlPublicity,
+                new Timestamp(Calendar.getInstance().getTime().getTime()),true,0);
 
 		return shortURLRepository.save(su);
 
