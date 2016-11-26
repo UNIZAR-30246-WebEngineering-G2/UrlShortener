@@ -21,6 +21,7 @@ public class ShortURL implements Comparable{
     private boolean active;
     private int update_status;        // 0 = pending -- 1=updating
     private Timestamp last_change;
+    private Timestamp last_time_up;
 
     public ShortURL(String hash, String target, URI uri, String sponsor,
                     Date created, String owner, Integer mode, Boolean safe, String ip,
@@ -123,9 +124,9 @@ public class ShortURL implements Comparable{
         return active;
     }
 
-    public int getUpdate_status() {
-        return update_status;
-    }
+    public int getUpdate_status() {return update_status;}
+
+    public Timestamp getLast_time_up() {return last_time_up;}
 
     public void setActive(boolean active) {
         this.active = active;
@@ -138,6 +139,8 @@ public class ShortURL implements Comparable{
     public void setUpdate_status(int update_status) {
         this.update_status = update_status;
     }
+
+    public void setLast_time_up(Timestamp last_time_up){this.last_time_up = last_time_up;}
 
     public int compareTo(Object o) {
         ShortURL nu = (ShortURL) o;

@@ -27,6 +27,7 @@ import java.util.Calendar;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
@@ -41,9 +42,10 @@ public class UrlShortenerController {
 	private static final Logger LOG = LoggerFactory.getLogger(UrlShortenerController.class);
 
 	private IPService ipService = new IPService();
-
 	@Autowired
 	protected ShortURLRepository shortURLRepository;
+	@Autowired
+	protected CheckUrls checkUrls;
 	@Autowired
 	protected ClickRepository clickRepository;
 
@@ -55,7 +57,9 @@ public class UrlShortenerController {
 			createAndSaveClick(id, extractIP(request));
 			return createSuccessfulRedirectToResponse(l, request, id);
 		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            request.getSession().setAttribute("UltimaVezEnPie",l.getLast_time_up());
+            return new ModelAndView("urlDown.html");
+			//return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
 
@@ -95,7 +99,7 @@ public class UrlShortenerController {
 											  @RequestParam(value = "sponsor", required = false) String sponsor,
 											  @RequestParam(value = "publicity-url", required = false) String urlPublicity,
 											  @RequestParam(value = "time-publicity", required = false) Integer timePublicity,
-											  HttpServletRequest request, RedirectAttributes ra, CheckUrls checkUrls) {
+											  HttpServletRequest request, RedirectAttributes ra) {
 		UrlValidator urlValidator = new UrlValidator(new String[] { "http", "https" });
 		if(urlValidator.isValid(url)){
 
@@ -112,9 +116,10 @@ public class UrlShortenerController {
 					} else{
                         boolean active = isReachable(url);
                         su.setActive(active);
-                        checkUrls.agnadirUrl(su);
+						if (checkUrls!= null) checkUrls.agnadirUrl(su);
                         su.setLastChange(new Timestamp(Calendar.getInstance().getTime().getTime()));
                         if(su.getActive()){
+                            su.setLast_time_up(new Timestamp(Calendar.getInstance().getTime().getTime()));
                             return new ResponseEntity<>(su, h, HttpStatus.CREATED);
                         } else return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
 

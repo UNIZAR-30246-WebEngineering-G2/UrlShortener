@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>URL Down</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" type="text/css" href="webjars/bootstrap/3.3.5/css/bootstrap.min.css" />
+</head>
+
+<body>
+<div class="container-full">
+    <div class="col-lg-12 text-center">
+        <h1>The URL requested is down.</h1>
+        <br/>
+        <h2> URL you are trying to access is down since : <span id="date" th:text = "${session.UltimaVezEnPie}"></span></h2>
+    </div>
+</div>
+</body>
+</html>
