@@ -27,6 +27,7 @@ import java.util.Calendar;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
@@ -43,6 +44,9 @@ public class UrlShortenerController {
 	private IPService ipService = new IPService();
 
 	@Autowired
+	protected CheckUrls checkUrls;
+
+	@Autowired
 	protected ShortURLRepository shortURLRepository;
 	@Autowired
 	protected ClickRepository clickRepository;
@@ -55,7 +59,12 @@ public class UrlShortenerController {
 			createAndSaveClick(id, extractIP(request));
 			return createSuccessfulRedirectToResponse(l, request, id);
 		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			if (l!=null) {
+				request.getSession().setAttribute("UltimaVezEnPie", l.getLast_time_up());
+				return new ModelAndView("urlDown.html");
+			}else {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
 		}
 	}
 
@@ -66,6 +75,7 @@ public class UrlShortenerController {
 				null, null, null, ip, null, locations.get(0), locations.get(1));
 		cl=clickRepository.save(cl);
 		LOG.info(cl!=null?"["+hash+"] saved with id ["+cl.getId()+"]":"["+hash+"] was not saved");
+
 	}
 
 	protected ArrayList<String> obtainLocation(String ip){
@@ -95,7 +105,7 @@ public class UrlShortenerController {
 											  @RequestParam(value = "sponsor", required = false) String sponsor,
 											  @RequestParam(value = "publicity-url", required = false) String urlPublicity,
 											  @RequestParam(value = "time-publicity", required = false) Integer timePublicity,
-											  HttpServletRequest request, RedirectAttributes ra, CheckUrls checkUrls) {
+											  HttpServletRequest request, RedirectAttributes ra) {
 		UrlValidator urlValidator = new UrlValidator(new String[] { "http", "https" });
 		if(urlValidator.isValid(url)){
 
@@ -112,9 +122,10 @@ public class UrlShortenerController {
 					} else{
                         boolean active = isReachable(url);
                         su.setActive(active);
-                        checkUrls.agnadirUrl(su);
+                        if(checkUrls!= null) checkUrls.agnadirUrl(su);
                         su.setLastChange(new Timestamp(Calendar.getInstance().getTime().getTime()));
                         if(su.getActive()){
+							su.setLast_time_up(new Timestamp(Calendar.getInstance().getTime().getTime()));
                             return new ResponseEntity<>(su, h, HttpStatus.CREATED);
                         } else return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
 
@@ -218,7 +229,6 @@ public class UrlShortenerController {
 				System.currentTimeMillis()), owner,
 				HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null,timePublicity, urlPublicity,
                 new Timestamp(Calendar.getInstance().getTime().getTime()),true,0);
-
 		return shortURLRepository.save(su);
 
 	}

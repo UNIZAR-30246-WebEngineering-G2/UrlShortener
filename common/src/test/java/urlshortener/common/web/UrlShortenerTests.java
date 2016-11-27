@@ -110,8 +110,7 @@ public class UrlShortenerTests {
 	public void anURLInactiveReturnsDownHtml() throws Exception{
         when(shortURLRepository.findByKey("someKey2")).thenReturn(anyUrl());
         mockMvc.perform(get("/{id}", "someKey2")).andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(forwardedUrl("/urlDown.html"));
+				.andExpect(status().isOk()).andExpect(forwardedUrl("/urlDown.html"));
     }
 
 	private void configureTransparentSave() {

@@ -29,10 +29,6 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 	private static final Logger logger = LoggerFactory.getLogger(UrlShortenerControllerWithLogs.class);
 	private final Integer SECONDS_FOR_REQUESTS = 10;
 
-    @Autowired
-    protected CheckUrls checkUrls;
-
-
     @RequestMapping(value="/requestStatus", method = RequestMethod.GET)
 	public void checkRequestStatus(@RequestParam("link")String id,
 								   HttpServletRequest request, HttpServletResponse response){
@@ -73,9 +69,9 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 											  @RequestParam(value = "sponsor", required = false) String sponsor,
 											  @RequestParam(value = "publicity-url", required = false) String urlPublicity,
 											  @RequestParam(value = "time-publicity", required = false) Integer timePublicity,
-											  HttpServletRequest request, RedirectAttributes ra, CheckUrls cu) {
+											  HttpServletRequest request, RedirectAttributes ra) {
         logger.info("Requested new short for uri " + url);
-		return super.shortener(url, sponsor, urlPublicity, timePublicity, request, ra,checkUrls);
+		return super.shortener(url, sponsor, urlPublicity, timePublicity, request, ra);
 	}
 
 	private boolean tooMuchRequests(HttpServletRequest request, String hash){

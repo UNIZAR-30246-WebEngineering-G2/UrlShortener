@@ -1,7 +1,6 @@
 package urlshortener.common.web;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -17,7 +16,7 @@ import java.util.concurrent.*;
  * Created by AsierHandball on 16/11/2016.
  */
 @Component
-public class CheckUrls{
+public class CheckUrls implements InitializingBean{
 
     @Autowired
     private ShortURLRepository shortURLRepository;
@@ -29,14 +28,9 @@ public class CheckUrls{
 
 
 
-    public CheckUrls() throws Exception {
-        queue = new LinkedBlockingQueue<ShortURL>();
-        Thread[] t = new Thread[NUM_THREADS];
-        for (int i=0; i<t.length; i++) {
-            t[i] = new Thread(new CheckerThread(i, shortURLRepository, queue));
-            t[i].start();
-        }
-    }
+    public CheckUrls(){}
+
+
     @Scheduled(fixedRate = 10000)  //Esto hace que se ejecute cada 10k ms
     public void estampillar(){
         Timestamp minTimestamp = new Timestamp(Calendar.getInstance().getTime().getTime() - TIME_DIFF);
@@ -63,6 +57,16 @@ public class CheckUrls{
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+                queue = new LinkedBlockingQueue<ShortURL>();
+                Thread[] t = new Thread[NUM_THREADS];
+                for (int i=0; i<t.length; i++) {
+                    t[i] = new Thread(new CheckerThread(i, shortURLRepository, queue));
+                    t[i].start();
+                }
     }
 
 }

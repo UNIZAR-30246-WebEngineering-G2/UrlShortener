@@ -66,11 +66,11 @@ public class ShortURLRepositoryImpl implements ShortURLRepository {
             su.setLastChange(timeStamp);
         }
 		try {
-			jdbc.update("INSERT INTO shorturl VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+			jdbc.update("INSERT INTO shorturl VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 					su.getHash(), su.getTarget(), su.getSponsor(),
 					su.getCreated(), su.getOwner(), su.getMode(), su.getSafe(),
 					su.getIP(), su.getCountry(), su.getTimePublicity(), su.getUrlPublicity(),su.getLastChange(),
-					su.getActive(),su.getUpdate_status());
+					su.getActive(),su.getUpdate_status(),su.getLast_time_up());
 		} catch (DuplicateKeyException e) {
 			log.debug("When insert for key " + su.getHash(), e);
 			su.setOwner("");
@@ -102,11 +102,11 @@ public class ShortURLRepositoryImpl implements ShortURLRepository {
 		try {
 			jdbc.update(
 					"update shorturl set target=?, sponsor=?, created=?, owner=?, mode=?, safe=?, ip=?, " +
-							"country=?, timePublicity=?, urlPublicity=?,last_change=?,active=?,update_status=? where hash=?",
+							"country=?, timePublicity=?, urlPublicity=?,last_change=?,active=?,update_status=?,last_time_up=? where hash=?",
 					su.getTarget(), su.getSponsor(), su.getCreated(),
 					su.getOwner(), su.getMode(), su.getSafe(), su.getIP(),
 					su.getCountry(),su.getTimePublicity(),su.getUrlPublicity(),su.getLastChange(),su.getActive(),
-                    su.getUpdate_status(), su.getHash());
+                    su.getUpdate_status(), su.getHash(),su.getLast_time_up());
 		} catch (Exception e) {
 			log.debug("When update for hash " + su.getHash(), e);
 		}

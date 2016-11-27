@@ -12,11 +12,6 @@ public class CheckingConfig {
 
     @Bean
     CheckUrls checkUrls(){
-        try {
             return new CheckUrls();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 }

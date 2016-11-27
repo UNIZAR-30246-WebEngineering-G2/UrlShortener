@@ -2,6 +2,7 @@ package urlshortener.common.domain;
 
 import java.net.URI;
 import java.sql.Date;
+import java.sql.Time;
 import java.sql.Timestamp;
 
 public class ShortURL implements Comparable{
@@ -21,6 +22,7 @@ public class ShortURL implements Comparable{
     private boolean active;
     private int update_status;        // 0 = pending -- 1=updating
     private Timestamp last_change;
+    private Timestamp last_time_up;
 
     public ShortURL(String hash, String target, URI uri, String sponsor,
                     Date created, String owner, Integer mode, Boolean safe, String ip,
@@ -118,6 +120,10 @@ public class ShortURL implements Comparable{
     public Timestamp getLastChange() {
         return last_change;
     }
+
+    public Timestamp getLast_time_up() {return last_time_up;}
+
+    public void setLast_time_up(Timestamp ltu){this.last_time_up=ltu;}
 
     public boolean getActive() {
         return active;
