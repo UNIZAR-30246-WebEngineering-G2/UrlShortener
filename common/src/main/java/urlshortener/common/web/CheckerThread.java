@@ -32,24 +32,16 @@ public class CheckerThread implements Runnable{
     public void run(){
         while (true){
             try{
-                //System.out.println("Nueva iteracion del bucle");
+
                 ShortURL su = queue.take();
-                //System.out.println("Comprobando :"+su.getTarget());
                 URL urlServidor = null;
                 try{
                     urlServidor = new URL(su.getTarget());
                     HttpURLConnection urlConnection = (HttpURLConnection) urlServidor.openConnection();
                     urlConnection.setConnectTimeout(5000);
                     urlConnection.connect();
-                    if(urlConnection.getResponseCode() == 200){
-                        su.setActive(true);
-                        su.setLast_time_up(new Timestamp(Calendar.getInstance().getTime().getTime()));
-                        //System.out.println("Respuesta 200 todo ok.");
-                    }
-                    else{
-                        su.setActive(false);
-                        //System.out.println("Respuesta no 200 devolviendo 404 con tiempo de caida");
-                    }
+                    if(urlConnection.getResponseCode() == 200) su.setActive(true);
+                    else su.setActive(false);
                 } catch(IOException e){
                     su.setActive(false);
                 }
