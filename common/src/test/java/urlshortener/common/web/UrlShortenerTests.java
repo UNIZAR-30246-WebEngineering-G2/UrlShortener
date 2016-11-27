@@ -9,7 +9,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
@@ -20,9 +19,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static urlshortener.common.web.fixture.ShortURLFixture.anyUrl;
 import static urlshortener.common.web.fixture.ShortURLFixture.someUrl;
 
 public class UrlShortenerTests {
@@ -108,6 +106,13 @@ public class UrlShortenerTests {
 		mockMvc.perform(post("/link").param("url", "someKey")).andDo(print())
 				.andExpect(status().isBadRequest());
 	}
+    @Test
+	public void anURLInactiveReturnsDownHtml() throws Exception{
+        when(shortURLRepository.findByKey("someKey2")).thenReturn(anyUrl());
+        mockMvc.perform(get("/{id}", "someKey2")).andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("/urlDown.html"));
+    }
 
 	private void configureTransparentSave() {
 		when(shortURLRepository.save(org.mockito.Matchers.any(ShortURL.class)))

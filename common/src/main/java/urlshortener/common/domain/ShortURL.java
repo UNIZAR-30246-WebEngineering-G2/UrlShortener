@@ -25,7 +25,7 @@ public class ShortURL implements Comparable{
 
     public ShortURL(String hash, String target, URI uri, String sponsor,
                     Date created, String owner, Integer mode, Boolean safe, String ip,
-                    String country, Integer timePublicity, String urlPublicity, Timestamp last_change, boolean active, int update_status) {
+                    String country, Integer timePublicity, String urlPublicity, Timestamp last_change, boolean active, int update_status, Timestamp last_time_up) {
         this.hash = hash;
         this.target = target;
         this.uri = uri;
@@ -41,6 +41,7 @@ public class ShortURL implements Comparable{
         this.last_change = last_change;
         this.active = active;
         this.update_status = update_status;
+        this.last_time_up = last_time_up;
     }
 
     public ShortURL(String hash, String target, URI uri, String sponsor,

@@ -34,7 +34,7 @@ public class ShortURLRepositoryImpl implements ShortURLRepository {
 					rs.getString("owner"), rs.getInt("mode"),
 					rs.getBoolean("safe"), rs.getString("ip"),
 					rs.getString("country"), rs.getInt("timePublicity"), rs.getString("urlPublicity"),
-                    rs.getTimestamp("lastchange"),rs.getBoolean("active"), rs.getInt("update_status"));
+                    rs.getTimestamp("lastchange"),rs.getBoolean("active"), rs.getInt("update_status"),rs.getTimestamp("last_time_up"));
 		}
 	};
 

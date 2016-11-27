@@ -57,11 +57,15 @@ public class UrlShortenerController {
 			createAndSaveClick(id, extractIP(request));
 			return createSuccessfulRedirectToResponse(l, request, id);
 		} else {
-            request.getSession().setAttribute("UltimaVezEnPie",l.getLast_time_up());
-            return new ModelAndView("urlDown.html");
-			//return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}
-	}
+		    if (l!=null){
+                request.getSession().setAttribute("UltimaVezEnPie",l.getLast_time_up());
+                //return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                return new ModelAndView("/urlDown.html");
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        }
+    }
 
 	private void createAndSaveClick(String hash, String ip) {
 		ArrayList<String> locations = obtainLocation(ip);
@@ -222,7 +226,7 @@ public class UrlShortenerController {
 								id, null,ra)).toUri(), sponsor, new Date(
 				System.currentTimeMillis()), owner,
 				HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null,timePublicity, urlPublicity,
-                new Timestamp(Calendar.getInstance().getTime().getTime()),true,0);
+                new Timestamp(Calendar.getInstance().getTime().getTime()),true,0,new Timestamp(Calendar.getInstance().getTime().getTime()));
 
 		return shortURLRepository.save(su);
 
