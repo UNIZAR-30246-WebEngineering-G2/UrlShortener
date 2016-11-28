@@ -40,8 +40,12 @@ public class CheckerThread implements Runnable{
                     HttpURLConnection urlConnection = (HttpURLConnection) urlServidor.openConnection();
                     urlConnection.setConnectTimeout(5000);
                     urlConnection.connect();
-                    if(urlConnection.getResponseCode() == 200) su.setActive(true);
-                    else su.setActive(false);
+                    if(urlConnection.getResponseCode() == 200){
+                        su.setActive(true);
+                        su.setLast_time_up(new Timestamp(Calendar.getInstance().getTime().getTime()));
+                    }else{
+                        su.setActive(false);
+                    }
                 } catch(IOException e){
                     su.setActive(false);
                 }
