@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import urlshortener.common.domain.CoordinatesHelper;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
@@ -38,7 +39,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
-public class UrlShortenerController {
+public class UrlShortenerController extends CoordinatesHelper {
 	private static final Logger LOG = LoggerFactory.getLogger(UrlShortenerController.class);
 
 	private IPService ipService = new IPService();
