@@ -85,6 +85,7 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 			logger.error("Detected blocked location, petition comes from (" + lastClickLatitude
 					+ "," + lastClickLongitude + "), and current blocked location is: (" + blockedLatitude + ","
 					+ blockedLongitude + ")");
+			return true;
 		}
 
 		List<Click> previousClicks = clickRepository.findByHash(hash);
