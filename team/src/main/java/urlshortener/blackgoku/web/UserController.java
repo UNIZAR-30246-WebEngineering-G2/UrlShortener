@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import urlshortener.common.domain.CoordinatesHelper;
 import urlshortener.common.domain.MessageHelper;
 import urlshortener.blackgoku.domain.User;
 import urlshortener.blackgoku.repository.UserRepository;
@@ -16,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
  * Created by Fran Menendez Moya on 3/11/16.
  */
 @RestController
-public class UserController {
+public class UserController extends CoordinatesHelper {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -29,6 +30,8 @@ public class UserController {
         String usuario = (String) request.getSession().getAttribute("user");
         if(usuario!=null){
             logger.info("Detected registered user, redirecting to shortener");
+            request.getSession().setAttribute("blockedLatitude",blockedLatitude);
+            request.getSession().setAttribute("blockedLongitude",blockedLongitude);
             return new ModelAndView("shortener");
         } else{
             logger.info("Detected unregistered user, redirecting to register");

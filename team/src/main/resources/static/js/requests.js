@@ -8,7 +8,10 @@ function check(event){
         if(msg != 'ok'){
             importantStuff.close();
             document.getElementById("idRequestsError").style.display = 'block';
-        } else importantStuff.location.href = href;
+        } else {
+            document.getElementById("idRequestsError").style.display = 'none';
+            importantStuff.location.href = href;
+        }
     });
     return false;
 }

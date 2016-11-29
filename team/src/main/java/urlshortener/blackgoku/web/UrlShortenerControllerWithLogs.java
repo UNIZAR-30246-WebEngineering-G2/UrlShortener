@@ -76,6 +76,18 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 
 	private boolean tooMuchRequests(HttpServletRequest request, String hash){
 		String ip = extractIP(request);
+
+		ArrayList<String> locations = obtainLocation(ip);
+		String lastClickLatitude = locations.get(0);
+		String lastClickLongitude = locations.get(1);
+
+		if(checkActiveBlocks(lastClickLatitude, lastClickLongitude)){
+			logger.error("Detected blocked location, petition comes from (" + lastClickLatitude
+					+ "," + lastClickLongitude + "), and current blocked location is: (" + blockedLatitude + ","
+					+ blockedLongitude + ")");
+			return true;
+		}
+
 		List<Click> previousClicks = clickRepository.findByHash(hash);
 
 		SimpleDateFormat yearmonthday = new SimpleDateFormat("yyyy:MM:dd");
@@ -88,10 +100,6 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 		String lastClickHour = hourFormat.format(lastClick);
 		String lastClickMinute = minuteFormat.format(lastClick);
 		String lastClickSeconds = secondFormat.format(lastClick);
-
-		ArrayList<String> locations = obtainLocation(ip);
-		String lastClickLatitude = locations.get(0);
-		String lastClickLongitude = locations.get(1);
 
 		Timestamp beforeLastClick = null;
 
@@ -124,5 +132,14 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 			}else return false;
 
 		} else return false;
+	}
+
+	private boolean checkActiveBlocks(String latitude, String longitude){
+		if(blockedLatitude != null && blockedLongitude != null){
+			String currentBlockedLatitude = blockedLatitude.toString();
+			String currentBlockedLongitude = blockedLongitude.toString();
+
+			return latitude.startsWith(currentBlockedLatitude) && longitude.startsWith(currentBlockedLongitude);
+		} return false;
 	}
 }
