@@ -12,7 +12,7 @@
 	<script type="text/javascript" src="/js/updateLatitude.js"></script>
 	<script type="text/javascript" src="/js/updateLongitude.js"></script>
 	<script language="JavaScript">
-		function check(checkbox) {
+		function show(checkbox) {
 			if (checkbox.checked){
 				document.getElementById('publicity-url').style.display='block';
 				document.getElementById('time-publicity').style.display='block';
@@ -57,7 +57,7 @@
 					<br/>
 
 					<div class="checkbox">
-						<label><input type="checkbox" value="yes" name="sponsor"  id="sponsor" onchange="check(this)"/>Select to show ads</label>
+						<label><input type="checkbox" value="yes" name="sponsor"  id="sponsor" onchange="show(this)"/>Select to show ads</label>
 					</div>
 					<br/>
 					<div class= "input-group input-group-lg col-sm-offset-4 col-sm-4">
