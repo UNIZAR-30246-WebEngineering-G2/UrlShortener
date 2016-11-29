@@ -47,15 +47,15 @@
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td th:text="${session.urlCreator}"></td>
-                                            <td th:text="${session.numberClicks}"></td>
-                                            <td th:text="${session.creationDate}"></td>
+                                            <td th:text="${urlCreator}"></td>
+                                            <td th:text="${numberClicks}"></td>
+                                            <td th:text="${creationDate}"></td>
                                             <td>
-                                                <a target="_blank" th:href="${session.targetUrl}"
-                                                   th:text="${session.targetUrl}"></a>
+                                                <a target="_blank" th:href="${targetUrl}"
+                                                   th:text="${targetUrl}"></a>
                                             </td>
-                                            <td th:text="${session.uniqueVisitors}"></td>
-                                            <td th:text="${session.ownerIP}"></td>
+                                            <td th:text="${uniqueVisitors}"></td>
+                                            <td th:text="${ownerIP}"></td>
                                         </tr>
                                     </tbody>
                                 </table>

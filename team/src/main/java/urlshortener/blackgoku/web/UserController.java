@@ -13,9 +13,6 @@ import urlshortener.blackgoku.repository.UserRepository;
 
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * Created by Fran Menendez Moya on 3/11/16.
- */
 @RestController
 public class UserController extends CoordinatesHelper {
 
@@ -30,9 +27,10 @@ public class UserController extends CoordinatesHelper {
         String usuario = (String) request.getSession().getAttribute("user");
         if(usuario!=null){
             logger.info("Detected registered user, redirecting to shortener");
-            request.getSession().setAttribute("blockedLatitude",blockedLatitude);
-            request.getSession().setAttribute("blockedLongitude",blockedLongitude);
-            return new ModelAndView("shortener");
+            ModelAndView mav = new ModelAndView("shortener");
+            mav.addObject("blockedLatitude", blockedLatitude);
+            mav.addObject("blockedLongitude", blockedLongitude);
+            return mav;
         } else{
             logger.info("Detected unregistered user, redirecting to register");
             return new ModelAndView("register");
@@ -79,21 +77,6 @@ public class UserController extends CoordinatesHelper {
         }
 
         return new ModelAndView("redirect:/");
-    }
-
-    @RequestMapping(value = "{id:(?!link|index).*}/moreInfo")
-    public ModelAndView moreInfo(@PathVariable String id,HttpServletRequest request,
-                                 RedirectAttributes ra){
-        logger.info("Detected petition to load the url shortener+");
-
-        String usuario = (String) request.getSession().getAttribute("user");
-        if(usuario!=null){
-            return new ModelAndView("infoUrl");
-        } else{
-            logger.error("Detected unlogged user trying to load urlshortener+");
-            MessageHelper.addErrorAttribute(ra,"error.logged.other","");
-            return new ModelAndView("redirect:/");
-        }
     }
 
     @RequestMapping(value="/logout")

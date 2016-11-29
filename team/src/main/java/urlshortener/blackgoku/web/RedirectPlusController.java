@@ -3,15 +3,11 @@ package urlshortener.blackgoku.web;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import urlshortener.common.domain.Click;
-import urlshortener.common.domain.MessageHelper;
-import urlshortener.common.domain.ShortURL;
+import urlshortener.common.domain.*;
+import urlshortener.blackgoku.domain.*;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
 
@@ -29,22 +25,27 @@ public class RedirectPlusController{
 
 
     @RequestMapping(value = "/{id:(?!link|index).*}+", method = RequestMethod.GET)
-    public ModelAndView redirectToPlus(@PathVariable String id, HttpServletRequest request,
+    public Object redirectToPlus(@PathVariable String id,
+                                       @RequestHeader(value="accept") String accept,
+                                       HttpServletRequest request,
                                        RedirectAttributes ra) {
         ShortURL su = shortURLRepository.findByKey(id);
 
         String user = (String) request.getSession().getAttribute("user");
+        //logger.info(accept);
         if(user != null){
             if(su != null){
                 if(user.equals(su.getOwner())){
                     logger.info("Owner of the shortened URL requests more info");
-                    request.getSession().setAttribute("urlCreator",user);
-                    request.getSession().setAttribute("numberClicks",clickRepository.findByHash(su.getHash()).size());
-                    request.getSession().setAttribute("creationDate",su.getCreated().toString());
-                    request.getSession().setAttribute("targetUrl",su.getTarget());
-                    request.getSession().setAttribute("uniqueVisitors",uniqueVisitors(clickRepository.findByHash(su.getHash())));
-                    request.getSession().setAttribute("ownerIP",request.getRemoteAddr());
-                    return new ModelAndView("redirect:/" + id + "/moreInfo");
+                    if(accept.contains("html")){
+                        logger.info("Html petition");
+                        return new ModelAndView("redirect:/" + id + "+.html");
+                    } else{
+                        logger.info("JSON petition");
+                        return new PlusObject(user,su.getCreated().toString(),su.getTarget(),request.getRemoteAddr(),
+                                clickRepository.findByHash(su.getHash()).size(),
+                                uniqueVisitors(clickRepository.findByHash(su.getHash())));
+                    }
                 } else{
                     logger.error("Someone who isn't the owner of the URL requested more info");
                     MessageHelper.addErrorAttribute(ra,"error.urlshortenerplus.owner",id);
@@ -57,6 +58,41 @@ public class RedirectPlusController{
             }
         } else{
             logger.error("Someone who isn't logged tried to request more info");
+            MessageHelper.addErrorAttribute(ra,"error.logged.other",id);
+            return new ModelAndView("redirect:/");
+        }
+    }
+
+    @RequestMapping(value = "/{id:(?!link|index).*}+.html", method = RequestMethod.GET)
+    public Object redirectToPlusHtml(@PathVariable String id,
+                                 HttpServletRequest request,
+                                 RedirectAttributes ra) {
+        ShortURL su = shortURLRepository.findByKey(id);
+
+        logger.info("Requested petition to return html with more info");
+
+        String user = (String) request.getSession().getAttribute("user");
+        if(user != null){
+            if(su != null){
+                if(user.equals(su.getOwner())){
+                    ModelAndView response = new ModelAndView("infoUrl");
+                    response.addObject("urlCreator",user);
+                    response.addObject("numberClicks",clickRepository.findByHash(su.getHash()).size());
+                    response.addObject("creationDate",su.getCreated());
+                    response.addObject("targetUrl",su.getTarget());
+                    response.addObject("uniqueVisitors",uniqueVisitors(clickRepository.findByHash(su.getHash())));
+                    response.addObject("ownerIP", request.getRemoteAddr());
+                    response.addObject("ownerIP",request.getRemoteAddr());
+                    return response;
+                } else{
+                    MessageHelper.addErrorAttribute(ra,"error.urlshortenerplus.owner",id);
+                    return new ModelAndView("redirect:/");
+                }
+            } else{
+                MessageHelper.addErrorAttribute(ra,"error.urlshortenerplus.notfound",id);
+                return new ModelAndView("redirect:/");
+            }
+        } else{
             MessageHelper.addErrorAttribute(ra,"error.logged.other",id);
             return new ModelAndView("redirect:/");
         }
