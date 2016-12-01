@@ -7,27 +7,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import urlshortener.common.domain.Click;
 import urlshortener.common.domain.MessageHelper;
 import urlshortener.common.domain.ShortURL;
-import urlshortener.common.web.CheckUrls;
+import urlshortener.common.service.RequestBlockerService;
 import urlshortener.common.web.UrlShortenerController;
-
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 
 	private static final Logger logger = LoggerFactory.getLogger(UrlShortenerControllerWithLogs.class);
-	private final Integer SECONDS_FOR_REQUESTS = 10;
+	@Autowired private RequestBlockerService requestBlockerService;
 
     @RequestMapping(value="/requestStatus", method = RequestMethod.GET)
 	public void checkRequestStatus(@RequestParam("link")String id,
@@ -37,7 +30,7 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 
 		try {
 			PrintWriter out = response.getWriter();
-			if(!tooMuchRequests(request, id)){
+			if(!requestBlockerService.tooMuchRequests(request, id)){
 				out.print("ok");
 			} else {
 				logger.error("Too much requests to hash " + id + " in the same location, throttling API calls");
@@ -54,7 +47,7 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 										RedirectAttributes ra) {
 		logger.info("Requested redirection with hash " + id);
 
-		if(!tooMuchRequests(request,id)){
+		if(!requestBlockerService.tooMuchRequests(request,id)){
 			return super.redirectTo(id, request, ra);
 		} else{
 			logger.error("Too much requests found for " + id + " from the same location");
@@ -72,74 +65,5 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 											  HttpServletRequest request, RedirectAttributes ra) {
         logger.info("Requested new short for uri " + url);
 		return super.shortener(url, sponsor, urlPublicity, timePublicity, request, ra);
-	}
-
-	private boolean tooMuchRequests(HttpServletRequest request, String hash){
-		String ip = extractIP(request);
-
-		ArrayList<String> locations = obtainLocation(ip);
-		String lastClickLatitude = locations.get(0);
-		String lastClickLongitude = locations.get(1);
-
-		if(checkActiveBlocks(lastClickLatitude, lastClickLongitude)){
-			logger.error("Detected blocked location, petition comes from (" + lastClickLatitude
-					+ "," + lastClickLongitude + "), and current blocked location is: (" + blockedLatitude + ","
-					+ blockedLongitude + ")");
-			return true;
-		}
-
-		List<Click> previousClicks = clickRepository.findByHash(hash);
-
-		SimpleDateFormat yearmonthday = new SimpleDateFormat("yyyy:MM:dd");
-		SimpleDateFormat hourFormat = new SimpleDateFormat("HH");
-		SimpleDateFormat minuteFormat = new SimpleDateFormat("mm");
-		SimpleDateFormat secondFormat = new SimpleDateFormat("ss");
-
-		Timestamp lastClick = new Timestamp(System.currentTimeMillis());
-		String lastClickDate = yearmonthday.format(lastClick);
-		String lastClickHour = hourFormat.format(lastClick);
-		String lastClickMinute = minuteFormat.format(lastClick);
-		String lastClickSeconds = secondFormat.format(lastClick);
-
-		Timestamp beforeLastClick = null;
-
-		for(Click c: previousClicks){
-			String currentClickLatitude = c.getLatitude();
-			String currentClickLongitude = c.getLongitude();
-
-			if(lastClickLatitude.equals(currentClickLatitude) && lastClickLongitude.equals(currentClickLongitude)){
-				beforeLastClick = c.getCreated();
-			}
-		}
-
-		if(beforeLastClick != null){
-			String beforeLastClickDate = yearmonthday.format(beforeLastClick);
-			String beforeLastClickHour = hourFormat.format(beforeLastClick);
-			String beforeLastClickMinute = minuteFormat.format(beforeLastClick);
-			String beforeLastClickSeconds = secondFormat.format(beforeLastClick);
-
-			logger.debug("Last click date: " + lastClickDate + " " + lastClickHour + " " + lastClickMinute + " " + lastClickSeconds);
-			logger.debug("Previous last click date: " + beforeLastClickDate + " " + beforeLastClickHour + " "
-					+ beforeLastClickMinute + " " + beforeLastClickSeconds);
-
-			if(lastClickDate.equals(beforeLastClickDate)){
-				logger.debug("Both the last click and the previous one from the same location are from the same day");
-				Integer aux1 = Integer.parseInt(lastClickSeconds);
-				Integer aux2 = Integer.parseInt(beforeLastClickSeconds);
-
-				return (lastClickHour.equals(beforeLastClickHour)) && (lastClickMinute.equals(beforeLastClickMinute))
-						&& ((aux1 - aux2) <= SECONDS_FOR_REQUESTS);
-			}else return false;
-
-		} else return false;
-	}
-
-	private boolean checkActiveBlocks(String latitude, String longitude){
-		if(blockedLatitude != null && blockedLongitude != null){
-			String currentBlockedLatitude = blockedLatitude.toString();
-			String currentBlockedLongitude = blockedLongitude.toString();
-
-			return latitude.startsWith(currentBlockedLatitude) && longitude.startsWith(currentBlockedLongitude);
-		} return false;
 	}
 }

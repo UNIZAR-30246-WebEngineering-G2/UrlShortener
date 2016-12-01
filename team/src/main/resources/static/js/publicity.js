@@ -3,8 +3,6 @@ function startTimer(duration, display) {
     setInterval(function () {
         seconds = parseInt(timer % 60, 10);
 
-        seconds = seconds < 10 ? "0" + seconds : seconds;
-
         display.text(seconds);
 
         if (--timer < 0) {

@@ -1,8 +1,6 @@
 package urlshortener.common.web;
 
 import com.google.common.hash.Hashing;
-
-import com.maxmind.geoip2.record.Location;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,22 +9,15 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.Timestamp;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import urlshortener.common.domain.CoordinatesHelper;
@@ -34,71 +25,51 @@ import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
 import urlshortener.common.domain.Click;
+import urlshortener.common.service.CookieService;
+import urlshortener.common.service.IPService;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
 public class UrlShortenerController extends CoordinatesHelper {
+
 	private static final Logger LOG = LoggerFactory.getLogger(UrlShortenerController.class);
-
-	private IPService ipService = new IPService();
-
-	@Autowired
-	protected CheckUrls checkUrls;
-
-	@Autowired
-	protected ShortURLRepository shortURLRepository;
-	@Autowired
-	protected ClickRepository clickRepository;
+	@Autowired private CheckUrls checkUrls;
+	@Autowired private ShortURLRepository shortURLRepository;
+	@Autowired private ClickRepository clickRepository;
+	@Autowired private IPService ipService;
+	@Autowired private CookieService cookieService;
 
 	@RequestMapping(value = "/{id:(?!link).*}", method = RequestMethod.GET)
 	public Object redirectTo(@PathVariable String id,
-										HttpServletRequest request, RedirectAttributes ra) {
+							 HttpServletRequest request,
+							 RedirectAttributes ra) {
 		ShortURL l = shortURLRepository.findByKey(id);
 		if (l != null && l.getActive()) {
-			createAndSaveClick(id, extractIP(request));
+			createAndSaveClick(id, ipService.extractIP(request));
 			return createSuccessfulRedirectToResponse(l, request, id);
 		} else {
 			if (l!=null) {
 				request.getSession().setAttribute("UltimaVezEnPie", l.getLast_time_up());
 				return new ModelAndView("urlDown.html");
 			}else {
+				LOG.error("Redirection petition with hash " + id + " not found");
 				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 			}
 		}
 	}
 
 	private void createAndSaveClick(String hash, String ip) {
-		ArrayList<String> locations = obtainLocation(ip);
+		ArrayList<String> locations = ipService.obtainLocation(ip);
 
 		Click cl = new Click(null, hash, new Timestamp(System.currentTimeMillis()),
-				null, null, null, ip, null, locations.get(0), locations.get(1));
+				null, null, null, ip, null,
+				locations.size() == 0 ? "IP not in DB" : locations.get(0),
+				locations.size() == 0 ? "IP not in DB" : locations.get(1));
 		cl=clickRepository.save(cl);
 		LOG.info(cl!=null?"["+hash+"] saved with id ["+cl.getId()+"]":"["+hash+"] was not saved");
 
-	}
-
-	protected ArrayList<String> obtainLocation(String ip){
-		String latitude = "IP not in DB";
-		String longitude = "IP not in DB";
-
-		Location clientLocation = ipService.obtainLocation(ip);
-
-		if(clientLocation != null){
-			latitude = String.valueOf(clientLocation.getLatitude());
-			longitude = String.valueOf(clientLocation.getLongitude());
-
-			LOG.info("Latitud of new visitor: " + latitude);
-			LOG.info("Longitude of new visitor: " + longitude);
-
-		} else LOG.error("Information about IP " + ip + " not found");
-
-		ArrayList<String> locationArray = new ArrayList<>();
-		locationArray.add(latitude);
-		locationArray.add(longitude);
-
-		return locationArray;
 	}
 
 	@RequestMapping(value = "/link", method = RequestMethod.POST)
@@ -109,10 +80,9 @@ public class UrlShortenerController extends CoordinatesHelper {
 											  HttpServletRequest request, RedirectAttributes ra) {
 		UrlValidator urlValidator = new UrlValidator(new String[] { "http", "https" });
 		if(urlValidator.isValid(url)){
-
 				String id = (String) request.getSession().getAttribute("user");
 				if(id == null) id="";
-				ShortURL su = createAndSaveIfValid(url, sponsor, urlPublicity, timePublicity ,id, extractIP(request),ra);
+				ShortURL su = createAndSaveIfValid(url, sponsor, urlPublicity, timePublicity ,id, ipService.extractIP(request),ra);
 				if (su != null) {
                     HttpHeaders h = new HttpHeaders();
 					h.setLocation(su.getUri());
@@ -121,7 +91,7 @@ public class UrlShortenerController extends CoordinatesHelper {
 						LOG.error("Extended URL requested has already been shortened");
 						return new ResponseEntity<>(su, h,HttpStatus.CONFLICT);
 					} else{
-                        boolean active = isReachable(url);
+                        boolean active = IPService.isReachable(url);
                         su.setActive(active);
                         if(checkUrls!= null) checkUrls.agnadirUrl(su);
                         su.setLastChange(new Timestamp(Calendar.getInstance().getTime().getTime()));
@@ -143,16 +113,12 @@ public class UrlShortenerController extends CoordinatesHelper {
 		}
 	}
 
-	protected String extractIP(HttpServletRequest request) {
-		return request.getRemoteAddr();
-	}
-
 	private ResponseEntity<?> createSuccessfulRedirectToResponse(ShortURL l, HttpServletRequest request, String id) {
 		boolean lessThanTimeEstablished = false;
         final int TIME_ESTABLISHED = 30;
         long time;
         HttpHeaders h = new HttpHeaders();
-        Cookie click = findCookie(id,request);
+        Cookie click = cookieService.findCookie(id,request);
 		if(click == null){
             h.set("Set-Cookie",id+"="+System.currentTimeMillis());
         } else {
@@ -196,27 +162,6 @@ public class UrlShortenerController extends CoordinatesHelper {
 		}
 	}
 
-	private Cookie findCookie(String value, HttpServletRequest request){
-        Cookie[] cookies = request.getCookies();
-		if(cookies == null){
-			return null;
-		} else {
-			int i = 0;
-			boolean found= false;
-			while(!found && i<cookies.length){
-				if(cookies[i].getName().equals(value)){
-					found = true;
-				}
-				i++;
-			}
-			if(found){
-				return cookies[i-1];
-			} else {
-				return null;
-			}
-		}
-    }
-
 	private ShortURL createAndSaveIfValid(String url, String sponsor, String urlPublicity, Integer timePublicity,
 										  String owner, String ip, RedirectAttributes ra) {
 
@@ -231,17 +176,5 @@ public class UrlShortenerController extends CoordinatesHelper {
 				HttpStatus.TEMPORARY_REDIRECT.value(), true, ip, null,timePublicity, urlPublicity,
                 new Timestamp(Calendar.getInstance().getTime().getTime()),true,0);
 		return shortURLRepository.save(su);
-
-	}
-
-	private boolean isReachable(String url) {
-		try {
-			HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-			connection.setRequestMethod("HEAD");
-			int responseCode = connection.getResponseCode();
-			return responseCode == 200;
-		} catch (IOException e) {
-			return false;
-		}
 	}
 }

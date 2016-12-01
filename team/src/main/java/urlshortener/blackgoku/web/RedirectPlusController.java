@@ -23,7 +23,6 @@ public class RedirectPlusController{
     @Autowired
     protected ClickRepository clickRepository;
 
-
     @RequestMapping(value = "/{id:(?!link|index).*}+", method = RequestMethod.GET)
     public Object redirectToPlus(@PathVariable String id,
                                        @RequestHeader(value="accept") String accept,
