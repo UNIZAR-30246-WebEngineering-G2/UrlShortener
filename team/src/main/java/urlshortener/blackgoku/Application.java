@@ -26,7 +26,7 @@ public class Application extends SpringBootServletInitializer  implements Comman
 
 	@Override
 	public void run(String... args) throws Exception {
-		userRepository.save(new User("admin@admin.com","admin"));
+		//userRepository.save(new User("admin@admin.com","admin"));
 	}
 
 }

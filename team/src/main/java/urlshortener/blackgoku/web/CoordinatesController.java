@@ -5,50 +5,46 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import urlshortener.blackgoku.domain.Coordinates;
 import urlshortener.common.domain.CoordinatesHelper;
+import urlshortener.common.domain.MessageHelper;
 
-/**
- * Created by Fran Menendez Moya on 28/11/2016.
- */
+import javax.servlet.http.HttpServletRequest;
+
+
 @RestController
 public class CoordinatesController extends CoordinatesHelper{
 
     private static final Logger logger = LoggerFactory.getLogger(CoordinatesController.class);
 
-    @RequestMapping(value = "/blockedLatitude", method = RequestMethod.GET)
-    public String getBlockedLatitude(){
-        logger.info("Detected petition to show the current blocked latitude");
-        return (blockedLatitude!=null?blockedLatitude.toString():"None");
+    @RequestMapping(value = "/blockedCoordinates", method = RequestMethod.GET, produces = "application/json")
+    public Coordinates getBlockedCoordinates(){
+        logger.info("Detected petition to show the current blocked coordinates");
+        return new Coordinates(blockedLatitude,blockedLongitude);
     }
 
-    @RequestMapping(value = "/blockedLongitude", method = RequestMethod.GET)
-    public String getBlockedLongitude(){
-        logger.info("Detected petition to show the current blocked longitude");
-        return (blockedLongitude!=null?blockedLongitude.toString():"None");
-    }
+    @RequestMapping(value = "/blockedCoordinates", method = RequestMethod.POST)
+    public Object setBlockedCoordinates(@RequestParam(value = "latitude") String latitude,
+                                        @RequestParam(value = "longitude") String longitude,
+                                        HttpServletRequest request, RedirectAttributes ra){
+        logger.info("Detected petition to set the current blocked coordinates to (" + (latitude!=null?latitude:"")
+                    + "," + (longitude!=null?longitude:"") + ")");
 
-    @RequestMapping(value = "/blockedLatitude", method = RequestMethod.POST)
-    public ResponseEntity<?> updateBlockedLatitude(@RequestParam(value = "latitude", required = false) String latitude){
-        logger.info("Detected petition to modify the current blocked latitude to: " + (latitude!=null?latitude:""));
-        if(latitude != null && !latitude.equals("")){
-            blockedLatitude = Double.parseDouble(latitude);
+        String user = (String) request.getSession().getAttribute("user");
+
+        if(user != null &&  user.equals("admin@admin.com")){
+            if(latitude != null && longitude != null){
+
+                blockedLatitude = (latitude.equals("")?null:Double.parseDouble(latitude));
+                blockedLongitude = (longitude.equals("")?null:Double.parseDouble(longitude));
+            }
+
             return new ResponseEntity<>(HttpStatus.CREATED);
-        } else {
-            blockedLatitude = null;
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } else{
+            MessageHelper.addErrorAttribute(ra,"error.logged.other","");
+            return new ModelAndView("redirect:/");
         }
     }
-
-    @RequestMapping(value = "/blockedLongitude", method = RequestMethod.POST)
-    public ResponseEntity<?> updateBlockedLongitude(@RequestParam(value = "longitude", required = false) String longitude){
-        logger.info("Detected petition to modify the current blocked longitude to: " + (longitude!=null?longitude:""));
-        if(longitude != null && !longitude.equals("")){
-            blockedLongitude = Double.parseDouble(longitude);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        } else {
-            blockedLongitude = null;
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
-
 }

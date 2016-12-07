@@ -69,4 +69,20 @@ public class Click {
 	public String getLongitude() {
 		return longitude;
 	}
+
+	@Override
+	public String toString() {
+		return "Click{" +
+				"id=" + id +
+				", hash='" + hash + '\'' +
+				", created=" + created +
+				", referrer='" + referrer + '\'' +
+				", browser='" + browser + '\'' +
+				", platform='" + platform + '\'' +
+				", ip='" + ip + '\'' +
+				", country='" + country + '\'' +
+				", latitude='" + latitude + '\'' +
+				", longitude='" + longitude + '\'' +
+				'}';
+	}
 }

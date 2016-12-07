@@ -1,0 +1,3 @@
+INSERT INTO users VALUES ('admin@admin.com','admin');
+INSERT INTO shorturl VALUES ('hashTest','http://www.google.es',null,current_date,'admin@admin.com',307,true,'','null',0,'',current_date,true,0,null);
+INSERT INTO shorturl VALUES ('hashTestPb','http://www.unizar.es','yes',current_date,'admin@admin.com',307,true,'0:0:0:0:0:0:0:1','null',15,'http://www.salsalol.com',current_date,true,0,current_date);

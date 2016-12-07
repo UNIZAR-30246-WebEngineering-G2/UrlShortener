@@ -156,4 +156,26 @@ public class ShortURL implements Comparable{
         }
 
     }
+
+    @Override
+    public String toString() {
+        return "ShortURL{" +
+                "hash='" + hash + '\'' +
+                ", target='" + target + '\'' +
+                ", uri=" + uri +
+                ", sponsor='" + sponsor + '\'' +
+                ", created=" + created +
+                ", owner='" + owner + '\'' +
+                ", mode=" + mode +
+                ", safe=" + safe +
+                ", ip='" + ip + '\'' +
+                ", country='" + country + '\'' +
+                ", timePublicity=" + timePublicity +
+                ", urlPublicity='" + urlPublicity + '\'' +
+                ", active=" + active +
+                ", update_status=" + update_status +
+                ", last_change=" + last_change +
+                ", last_time_up=" + last_time_up +
+                '}';
+    }
 }

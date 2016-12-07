@@ -1,18 +1,18 @@
 $(document).ready(
     function () {
-        $("#updateLongitude").submit(
+        $("#updateCoordinates").submit(
             function(event) {
                 event.preventDefault();
                 $.ajax({
                     type : "POST",
-                    url : "/blockedLongitude",
+                    url : "/blockedCoordinates",
                     data : $(this).serialize(),
                     success : function(msg) {
-                        $("#resultLongitude").html(
-                            "<div class='alert alert-success lead'>Longitude updated!</div>");
+                        $("#resultUpdate").html(
+                            "<div class='alert alert-success lead'>Coordinates updated!</div>");
                     },
                     error: function(xhr, exception){
-                        $("#resultLongitude").html(
+                        $("#resultUpdate").html(
                             "<div class='alert alert-danger lead'>Oops, something went wrong!</div>");
 
                     }

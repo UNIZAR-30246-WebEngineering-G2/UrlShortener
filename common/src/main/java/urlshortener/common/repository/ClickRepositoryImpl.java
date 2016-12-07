@@ -90,10 +90,10 @@ public class ClickRepositoryImpl implements ClickRepository {
 			new DirectFieldAccessor(cl).setPropertyValue("id", holder.getKey()
 					.longValue());
 		} catch (DuplicateKeyException e) {
-			log.debug("When insert for click with id " + cl.getId(), e);
+			log.error("When insert for click with id " + cl.getId(), e);
 			return cl;
 		} catch (Exception e) {
-			log.debug("When insert a click", e);
+			log.error("When insert a click", e);
 			return null;
 		}
 		return cl;
