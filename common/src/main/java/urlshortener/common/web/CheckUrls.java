@@ -7,6 +7,9 @@ import org.springframework.stereotype.Component;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ShortURLRepository;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.List;
@@ -62,11 +65,36 @@ public class CheckUrls implements InitializingBean{
     @Override
     public void afterPropertiesSet() throws Exception {
                 queue = new LinkedBlockingQueue<ShortURL>();
-                Thread[] t = new Thread[NUM_THREADS];
-                for (int i=0; i<t.length; i++) {
-                    t[i] = new Thread(new CheckerThread(i, shortURLRepository, queue));
-                    t[i].start();
+    }
+
+    @Scheduled(fixedRate = 1000)
+    public void scheduledCheck(){
+        try{
+
+            ShortURL su = queue.take();
+            URL urlServidor = null;
+            try{
+                urlServidor = new URL(su.getTarget());
+                HttpURLConnection urlConnection = (HttpURLConnection) urlServidor.openConnection();
+                urlConnection.setConnectTimeout(5000);
+                urlConnection.connect();
+                if(urlConnection.getResponseCode() == 200){
+                    su.setActive(true);
+                    su.setLast_time_up(new Timestamp(Calendar.getInstance().getTime().getTime()));
+                }else{
+                    su.setActive(false);
                 }
+            } catch(IOException e){
+                su.setActive(false);
+            }
+            su.setLastChange(new Timestamp(Calendar.getInstance().getTime().getTime()));
+            su.setUpdate_status(0);
+            shortURLRepository.update(su);
+            queue.put(su);
+            Thread.sleep(100);
+        } catch(InterruptedException e){
+            e.printStackTrace();
+        }
     }
 
 }
