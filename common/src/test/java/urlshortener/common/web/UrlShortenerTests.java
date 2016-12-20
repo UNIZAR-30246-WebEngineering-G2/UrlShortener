@@ -12,10 +12,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
-import urlshortener.common.service.CookieService;
-import urlshortener.common.service.IPService;
-import urlshortener.common.service.IPServiceDatabase;
-import urlshortener.common.service.RequestBlockerService;
+import urlshortener.common.service.CookieServiceImpl;
+import urlshortener.common.service.IPServiceImpl;
+import urlshortener.common.service.RequestBlockerServiceImpl;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -38,13 +37,13 @@ public class UrlShortenerTests {
 	private ClickRepository clickRespository;
 
 	@Mock
-	private IPService ipService;
+	private IPServiceImpl ipServiceImpl;
 
 	@Mock
-	private CookieService cookieService;
+	private CookieServiceImpl cookieServiceImpl;
 
 	@Mock
-	private RequestBlockerService rbs;
+	private RequestBlockerServiceImpl rbs;
 
 	@InjectMocks
 	private UrlShortenerController urlShortener;

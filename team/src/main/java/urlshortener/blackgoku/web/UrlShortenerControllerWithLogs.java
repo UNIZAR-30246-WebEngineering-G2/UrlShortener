@@ -9,7 +9,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import urlshortener.common.domain.MessageHelper;
 import urlshortener.common.domain.ShortURL;
-import urlshortener.common.service.RequestBlockerService;
+import urlshortener.common.service.RequestBlockerServiceImpl;
 import urlshortener.common.web.UrlShortenerController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,7 +20,7 @@ import java.io.PrintWriter;
 public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 
 	private static final Logger logger = LoggerFactory.getLogger(UrlShortenerControllerWithLogs.class);
-	@Autowired private RequestBlockerService requestBlockerService;
+	@Autowired private RequestBlockerServiceImpl requestBlockerServiceImpl;
 
     @RequestMapping(value="/requestStatus", method = RequestMethod.GET)
 	public void checkRequestStatus(@RequestParam("link")String id,
@@ -30,7 +30,7 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 
 		try {
 			PrintWriter out = response.getWriter();
-			if(!requestBlockerService.tooMuchRequests(request, id)){
+			if(!requestBlockerServiceImpl.tooMuchRequests(request, id)){
 				out.print("ok");
 			} else {
 				logger.error("Too much requests to hash " + id + " in the same location, throttling API calls");
@@ -47,7 +47,7 @@ public class UrlShortenerControllerWithLogs extends UrlShortenerController {
 										RedirectAttributes ra) {
 		logger.info("Requested redirection with hash " + id);
 
-		if(!requestBlockerService.tooMuchRequests(request,id)){
+		if(!requestBlockerServiceImpl.tooMuchRequests(request,id)){
 			return super.redirectTo(id, request, ra);
 		} else{
 			logger.error("Too much requests found for " + id + " from the same location");

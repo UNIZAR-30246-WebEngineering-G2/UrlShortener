@@ -25,8 +25,8 @@ import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
 import urlshortener.common.domain.Click;
-import urlshortener.common.service.CookieService;
-import urlshortener.common.service.IPService;
+import urlshortener.common.service.CookieServiceImpl;
+import urlshortener.common.service.IPServiceImpl;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
@@ -38,8 +38,8 @@ public class UrlShortenerController extends CoordinatesHelper {
 	@Autowired private CheckUrls checkUrls;
 	@Autowired private ShortURLRepository shortURLRepository;
 	@Autowired private ClickRepository clickRepository;
-	@Autowired private IPService ipService;
-	@Autowired private CookieService cookieService;
+	@Autowired private IPServiceImpl ipServiceImpl;
+	@Autowired private CookieServiceImpl cookieServiceImpl;
 
 	@RequestMapping(value = "/{id:(?!link).*}", method = RequestMethod.GET)
 	public Object redirectTo(@PathVariable String id,
@@ -47,7 +47,7 @@ public class UrlShortenerController extends CoordinatesHelper {
 							 RedirectAttributes ra) {
 		ShortURL l = shortURLRepository.findByKey(id);
 		if (l != null && l.getActive()) {
-			createAndSaveClick(id, ipService.extractIP(request));
+			createAndSaveClick(id, ipServiceImpl.extractIP(request));
 			return createSuccessfulRedirectToResponse(l, request, id);
 		} else {
 			if (l!=null) {
@@ -61,7 +61,7 @@ public class UrlShortenerController extends CoordinatesHelper {
 	}
 
 	private void createAndSaveClick(String hash, String ip) {
-		ArrayList<String> locations = ipService.obtainLocation(ip);
+		ArrayList<String> locations = ipServiceImpl.obtainLocation(ip);
 
 		Click cl = new Click(null, hash, new Timestamp(System.currentTimeMillis()),
 				null, null, null, ip, null,
@@ -82,7 +82,7 @@ public class UrlShortenerController extends CoordinatesHelper {
 		if(urlValidator.isValid(url)){
 				String id = (String) request.getSession().getAttribute("user");
 				if(id == null) id="";
-				ShortURL su = createAndSaveIfValid(url, sponsor, urlPublicity, timePublicity ,id, ipService.extractIP(request),ra);
+				ShortURL su = createAndSaveIfValid(url, sponsor, urlPublicity, timePublicity ,id, ipServiceImpl.extractIP(request),ra);
 				if (su != null) {
                     HttpHeaders h = new HttpHeaders();
 					h.setLocation(su.getUri());
@@ -91,7 +91,8 @@ public class UrlShortenerController extends CoordinatesHelper {
 						LOG.error("Extended URL requested has already been shortened");
 						return new ResponseEntity<>(su, h,HttpStatus.CONFLICT);
 					} else{
-                        boolean active = IPService.isReachable(url);
+                        boolean active = IPServiceImpl.isReachable(url);
+                        LOG.info("Requested URL to short is " + (active?"active":"not active"));
                         su.setActive(active);
                         if(checkUrls!= null) checkUrls.agnadirUrl(su);
                         su.setLastChange(new Timestamp(Calendar.getInstance().getTime().getTime()));
@@ -118,7 +119,7 @@ public class UrlShortenerController extends CoordinatesHelper {
         final int TIME_ESTABLISHED = 30;
         long time;
         HttpHeaders h = new HttpHeaders();
-        Cookie click = cookieService.findCookie(id,request);
+        Cookie click = cookieServiceImpl.findCookie(id,request);
 		if(click == null){
             h.set("Set-Cookie",id+"="+System.currentTimeMillis());
         } else {

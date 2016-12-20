@@ -2,9 +2,9 @@ package urlshortener.blackgoku.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import urlshortener.common.service.CookieService;
-import urlshortener.common.service.IPService;
-import urlshortener.common.service.RequestBlockerService;
+import urlshortener.common.service.CookieServiceImpl;
+import urlshortener.common.service.IPServiceImpl;
+import urlshortener.common.service.RequestBlockerServiceImpl;
 import urlshortener.common.web.CheckUrls;
 
 @Configuration
@@ -16,17 +16,17 @@ public class BeanConfig {
     }
 
     @Bean
-    RequestBlockerService requestBlocker(){
-        return new RequestBlockerService();
+    RequestBlockerServiceImpl requestBlocker(){
+        return new RequestBlockerServiceImpl();
     }
 
     @Bean
-    IPService ipHelper(){
-        return new IPService();
+    IPServiceImpl ipHelper(){
+        return new IPServiceImpl();
     }
 
     @Bean
-    CookieService cookieService(){
-        return new CookieService();
+    CookieServiceImpl cookieService(){
+        return new CookieServiceImpl();
     }
 }
