@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import urlshortener.common.domain.ShortURL;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
+import urlshortener.common.repository.ShortUrlStatsRepository;
 import urlshortener.common.service.CookieServiceImpl;
 import urlshortener.common.service.IPServiceImpl;
 import urlshortener.common.service.RequestBlockerServiceImpl;
@@ -32,6 +33,9 @@ public class UrlShortenerTests {
 
 	@Mock
 	private ShortURLRepository shortURLRepository;
+
+	@Mock
+	private ShortUrlStatsRepository shortURLStatsRepository;
 
 	@Mock
 	private ClickRepository clickRespository;

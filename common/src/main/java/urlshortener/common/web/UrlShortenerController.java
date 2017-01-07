@@ -22,9 +22,12 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import urlshortener.common.domain.CoordinatesHelper;
 import urlshortener.common.domain.ShortURL;
+import urlshortener.common.domain.ShortUrlStats;
 import urlshortener.common.repository.ClickRepository;
 import urlshortener.common.repository.ShortURLRepository;
 import urlshortener.common.domain.Click;
+import urlshortener.common.repository.ShortUrlStatsRepository;
+import urlshortener.common.repository.ShortUrlStatsRepositoryImpl;
 import urlshortener.common.service.CookieServiceImpl;
 import urlshortener.common.service.IPServiceImpl;
 
@@ -35,9 +38,12 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 public class UrlShortenerController extends CoordinatesHelper {
 
 	private static final Logger LOG = LoggerFactory.getLogger(UrlShortenerController.class);
-	@Autowired private CheckUrls checkUrls;
+
 	@Autowired private ShortURLRepository shortURLRepository;
 	@Autowired private ClickRepository clickRepository;
+	@Autowired private ShortUrlStatsRepository shortUrlStatsRepository;
+
+	@Autowired private CheckUrls checkUrls;
 	@Autowired private IPServiceImpl ipServiceImpl;
 	@Autowired private CookieServiceImpl cookieServiceImpl;
 
@@ -79,13 +85,23 @@ public class UrlShortenerController extends CoordinatesHelper {
 											  @RequestParam(value = "time-publicity", required = false) Integer timePublicity,
 											  HttpServletRequest request, RedirectAttributes ra) {
 		UrlValidator urlValidator = new UrlValidator(new String[] { "http", "https" });
+
 		if(urlValidator.isValid(url)){
 				String id = (String) request.getSession().getAttribute("user");
 				if(id == null) id="";
+
 				ShortURL su = createAndSaveIfValid(url, sponsor, urlPublicity, timePublicity ,id, ipServiceImpl.extractIP(request),ra);
 				if (su != null) {
+					ShortUrlStats sus = shortUrlStatsRepository.findByHash(su.getHash());
+					if(sus == null){
+						LOG.info("Saving stats for " + su.getHash()+ " for the first time");
+						shortUrlStatsRepository.save(new ShortUrlStats(su.getHash(),0,0,0,
+								0,0,0));
+					}
+
                     HttpHeaders h = new HttpHeaders();
 					h.setLocation(su.getUri());
+
 					if(!su.getOwner().equals(id)){
 						//Shortened URL already exists
 						LOG.error("Extended URL requested has already been shortened");
@@ -94,12 +110,17 @@ public class UrlShortenerController extends CoordinatesHelper {
                         boolean active = IPServiceImpl.isReachable(url);
                         LOG.info("Requested URL to short is " + (active?"active":"not active"));
                         su.setActive(active);
+
                         if(checkUrls!= null) checkUrls.agnadirUrl(su);
                         su.setLastChange(new Timestamp(Calendar.getInstance().getTime().getTime()));
+
                         if(su.getActive()){
 							su.setLast_time_up(new Timestamp(Calendar.getInstance().getTime().getTime()));
-                            return new ResponseEntity<>(su, h, HttpStatus.CREATED);
-                        } else return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
+							shortURLRepository.update(su);
+							return new ResponseEntity<>(su, h, HttpStatus.CREATED);
+                        } else{
+							return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
+						}
 
 					}
 				}

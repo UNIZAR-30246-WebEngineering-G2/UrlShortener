@@ -1,6 +1,7 @@
 -- Clean database
 
 DROP TABLE CLICK IF EXISTS;
+DROP TABLE SHORTURLSTATS IF EXISTS;
 DROP TABLE SHORTURL IF EXISTS;
 DROP TABLE USERS IF EXISTS;
 
@@ -10,7 +11,7 @@ DROP TABLE USERS IF EXISTS;
 CREATE TABLE USERS(
   EMAIL VARCHAR(256) PRIMARY KEY,
   PASSWORD VARCHAR(512)
-)
+);
 -- ShortURL
 
 CREATE TABLE SHORTURL(
@@ -31,11 +32,21 @@ CREATE TABLE SHORTURL(
 	LAST_TIME_UP TIMESTAMP
 );
 
+CREATE TABLE SHORTURLSTATS (
+  HASH 		VARCHAR(10) NOT NULL FOREIGN KEY REFERENCES SHORTURL(HASH) PRIMARY KEY,	-- Foreing key
+  RTIME_AVERAGE INTEGER,  --Average response time (When checking in scheduler the URL target)
+  RTIME_NUMBER INTEGER,   --Number of average response times saved
+  LAST_RTIME INTEGER,     --Last  response time taken
+  D_TIME INTEGER,          --Down time
+  STIME_AVERAGE INTEGER,  --Average service time (Request to short an URL and get the shortened URL)
+  STIME_NUMBER INTEGER    --Number of average service times saved
+);
+
 -- Click
 
 CREATE TABLE CLICK(
     ID 			BIGINT IDENTITY,			-- KEY
-	HASH 		VARCHAR(10) NOT NULL FOREIGN KEY REFERENCES SHORTURL(HASH),	-- Foreing key	
+	HASH 		VARCHAR(10) NOT NULL FOREIGN KEY REFERENCES SHORTURL(HASH),	-- Foreing key
 	CREATED 	TIMESTAMP,					-- Creation date
 	REFERRER	VARCHAR(1024),				-- Traffic origin
 	BROWSER		VARCHAR(50),				-- Browser

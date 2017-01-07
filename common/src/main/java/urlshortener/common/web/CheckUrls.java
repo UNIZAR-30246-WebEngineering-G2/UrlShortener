@@ -1,58 +1,33 @@
 package urlshortener.common.web;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import urlshortener.common.domain.ShortURL;
+import urlshortener.common.domain.ShortUrlStats;
 import urlshortener.common.repository.ShortURLRepository;
+import urlshortener.common.repository.ShortUrlStatsRepository;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.Calendar;
-import java.util.List;
 import java.util.concurrent.*;
 
-/**
- * Created by AsierHandball on 16/11/2016.
- */
 @Component
 public class CheckUrls implements InitializingBean{
 
-    @Autowired
-    private ShortURLRepository shortURLRepository;
-    private final int NUM_THREADS = 2;                  // Number of threads checking urls
-    private final int TIME_DIFF = 5*60*1000;            // Min time difference between two active checks (ms)
-
+    @Autowired private ShortURLRepository shortURLRepository;
+    @Autowired private ShortUrlStatsRepository shortURLStatsRepository;
+    private static final Logger logger = LoggerFactory.getLogger(CheckUrls.class);
     private LinkedBlockingQueue<ShortURL> queue;
-
-
-
+    private final int rate = 3000;
 
     public CheckUrls(){}
-
-
-    @Scheduled(fixedRate = 10000)  //Esto hace que se ejecute cada 10k ms
-    public void estampillar(){
-        Timestamp minTimestamp = new Timestamp(Calendar.getInstance().getTime().getTime() - TIME_DIFF);
-        List<ShortURL> list = shortURLRepository.listToUpdate(minTimestamp);
-        if(list!=null) {
-            for (ShortURL su : list) {
-                try {
-                    su.setUpdate_status(1);      // Updating active URL
-                    //logger.info("Puting " + s.getTarget() + "   active:" + s.getActive() +
-                    //" size:" + queue.size() + " status:" + s.getUpdate_status());
-                    shortURLRepository.update(su);
-                    queue.put(su);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-    }
 
     public void agnadirUrl(ShortURL u){
         try {
@@ -64,37 +39,85 @@ public class CheckUrls implements InitializingBean{
 
     @Override
     public void afterPropertiesSet() throws Exception {
-                queue = new LinkedBlockingQueue<ShortURL>();
+        queue = new LinkedBlockingQueue<>();
     }
 
-    @Scheduled(fixedRate = 1000)
+    @Scheduled(fixedRate = rate)
     public void scheduledCheck(){
         try{
 
-            ShortURL su = queue.take();
-            URL urlServidor = null;
-            try{
-                urlServidor = new URL(su.getTarget());
-                HttpURLConnection urlConnection = (HttpURLConnection) urlServidor.openConnection();
-                urlConnection.setConnectTimeout(5000);
-                urlConnection.connect();
-                if(urlConnection.getResponseCode() == 200){
-                    su.setActive(true);
-                    su.setLast_time_up(new Timestamp(Calendar.getInstance().getTime().getTime()));
-                }else{
+            LinkedBlockingDeque<ShortURL> afterUpdate = new LinkedBlockingDeque<>();
+
+            while(queue.size() > 0){
+                ShortURL su = queue.take();
+                ShortUrlStats sus = shortURLStatsRepository.findByHash(su.getHash());
+
+                URL urlServidor;
+                try{
+                    urlServidor = new URL(su.getTarget());
+
+                    long tBefore = System.currentTimeMillis();
+
+                    //Connection
+                    HttpURLConnection urlConnection = (HttpURLConnection) urlServidor.openConnection();
+                    urlConnection.setConnectTimeout(2000);
+                    urlConnection.connect();
+
+                    long tAfter = System.currentTimeMillis();
+                    long milliSeconds = tAfter - tBefore;
+
+                    if(urlConnection.getResponseCode() == 200){
+                        su.setActive(true);
+                        su.setLast_time_up(new Timestamp(Calendar.getInstance().getTime().getTime()));
+
+                        //Check response time and other statistics
+                        logger.debug(su.getTarget() + " takes " + milliSeconds + " milliseconds to respond");
+                        if(sus != null){
+                            //Stats already exist, updating
+                            int previousAverage = sus.getRtime_average();
+                            int previousNumber = sus.getRtime_number();
+
+                            ShortUrlStats susToUpdateNew = new ShortUrlStats(sus.getHash(),(previousAverage+ (int)milliSeconds),
+                                    previousNumber+1, (int) milliSeconds,sus.getD_time(),
+                                    sus.getStime_average(),sus.getStime_number());
+
+                            shortURLStatsRepository.update(susToUpdateNew);
+
+                            logger.info("Hash " + susToUpdateNew.getHash() + " stats: " +
+                                    "Average response time: " + susToUpdateNew.calculateAverageResponseTime() + ", " +
+                                    "Last response time: " + susToUpdateNew.getLast_rtime() + "ms, " +
+                                    "Down time: " + susToUpdateNew.getD_time() + "ms, " +
+                                    "Average service time: " + susToUpdateNew.calculateAverageServiceTime());
+                        }
+                    }else{
+                        su.setActive(false);
+                    }
+                } catch(IOException e){
                     su.setActive(false);
+                    if(sus != null){
+                        ShortUrlStats susToUpdateNew = new ShortUrlStats(sus.getHash(),sus.getRtime_average(),
+                                sus.getRtime_number(), sus.getLast_rtime(),sus.getD_time() + rate,
+                                sus.getStime_average(),sus.getStime_number());
+
+                        shortURLStatsRepository.update(susToUpdateNew);
+
+                        logger.info("Hash " + susToUpdateNew.getHash() + " isn't reachable, stats: " +
+                                "Average response time: " + susToUpdateNew.calculateAverageResponseTime() + ", " +
+                                "Last response time: " + susToUpdateNew.getLast_rtime() + "ms, " +
+                                "Down time: " + susToUpdateNew.getD_time() + "ms, " +
+                                "Average service time: " + susToUpdateNew.calculateAverageServiceTime());
+                    }
                 }
-            } catch(IOException e){
-                su.setActive(false);
+                su.setLastChange(new Timestamp(Calendar.getInstance().getTime().getTime()));
+                shortURLRepository.update(su);
+                afterUpdate.put(su);
             }
-            su.setLastChange(new Timestamp(Calendar.getInstance().getTime().getTime()));
-            su.setUpdate_status(0);
-            shortURLRepository.update(su);
-            queue.put(su);
-            Thread.sleep(100);
+
+            while(afterUpdate.size() > 0){
+                queue.put(afterUpdate.take());
+            }
         } catch(InterruptedException e){
             e.printStackTrace();
         }
     }
-
 }
