@@ -1,0 +1,21 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://urlshortener/blackgoku/web/ws/schema"
+                               targetNamespace="http://urlshortener/blackgoku/web/ws/schema" elementFormDefault="qualified">
+
+<xs:element name="registerRequest">
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element name="eMailUser" type="xs:string"/>
+            <xs:element name="passwordUser" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="registerResponse">
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element name="registradoCorrectamente" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:element>
+
+</xs:schema>

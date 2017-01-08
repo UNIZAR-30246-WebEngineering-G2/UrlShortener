@@ -1,5 +1,10 @@
 package urlshortener.blackgoku.web;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +17,8 @@ import urlshortener.blackgoku.domain.User;
 import urlshortener.blackgoku.repository.UserRepository;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 @RestController
 public class UserController extends CoordinatesHelper {
@@ -42,7 +49,7 @@ public class UserController extends CoordinatesHelper {
                                  @RequestParam("password")String password,
                                  HttpServletRequest request,
                                  RedirectAttributes ra){
-        logger.info("Detected petition to register user "+email);
+     /**   logger.info("Detected petition to register user "+email);
         User usuario = new User(email,password);
 
         if(userRepo.save(usuario)){
@@ -50,6 +57,51 @@ public class UserController extends CoordinatesHelper {
             MessageHelper.addSuccessAttribute(ra,"success.register",email);
         } else{
             //error al registrarse
+            MessageHelper.addErrorAttribute(ra,"error.register",email);
+        }
+
+        return new ModelAndView("redirect:/");*/
+
+        String xml = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"\n" +
+                "                  xmlns:gs=\"http://urlshortener/blackgoku/web/ws/schema\">\n" +
+                "    <soapenv:Header/>\n" +
+                "    <soapenv:Body>\n" +
+                "        <gs:registerRequest>\n" +
+                "            <gs:eMailUser>" + email + "</gs:eMailUser>\n" +
+                "            <gs:passwordUser>" + password + "</gs:passwordUser>\n" +
+                "        </gs:registerRequest>\n" +
+                "    </soapenv:Body>\n" +
+                "</soapenv:Envelope>";
+
+        try{
+            HttpClient client = HttpClientBuilder.create().build();
+            HttpPost post = new HttpPost("http://localhost:8080/ws");
+
+            StringEntity input =  new StringEntity(xml);
+            input.setContentType("text/xml");
+            post.setEntity(input);
+
+
+            HttpResponse response = client.execute(post);
+
+            BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+
+            String output;
+            String respuesta = "";
+
+            while ((output = br.readLine()) != null) {
+                respuesta += output;
+            }
+
+            if(respuesta.contains("Se ha registrado correctamente el usuario")){
+                request.getSession().setAttribute("user",email);
+                MessageHelper.addSuccessAttribute(ra,"success.register",email);
+            } else{
+                //error al registrarse
+                MessageHelper.addErrorAttribute(ra,"error.register",email);
+            }
+
+        }catch (Exception e){
             MessageHelper.addErrorAttribute(ra,"error.register",email);
         }
 
