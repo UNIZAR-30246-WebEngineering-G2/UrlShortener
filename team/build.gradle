@@ -4,7 +4,7 @@ buildscript {
         maven { url "http://repo.spring.io/release" }
     }
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.4.0.RELEASE")
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.4.3.RELEASE")
     }
 }
 apply plugin: "spring-boot"
@@ -63,6 +63,10 @@ targetCompatibility = 1.8
 dependencies {
     compile project(':common')
     compile("org.thymeleaf:thymeleaf-spring4")
+    compile("org.springframework.boot:spring-boot-starter-websocket")
+    compile("org.webjars:webjars-locator")
+    compile("org.webjars:sockjs-client:1.0.2")
+    compile("org.webjars:stomp-websocket:2.3.3")
 
     // Provides the production database
     runtime 'org.hsqldb:hsqldb'

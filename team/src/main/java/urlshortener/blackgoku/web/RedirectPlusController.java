@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import urlshortener.common.domain.*;
@@ -66,9 +67,15 @@ public class RedirectPlusController{
     public Object redirectToPlusHtml(@PathVariable String id,
                                  HttpServletRequest request,
                                  RedirectAttributes ra) {
-        ShortURL su = shortURLRepository.findByKey(id);
 
         logger.info("Requested petition to return html with more info");
+
+        String uri = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath()) + "/shortened/" + id;
+        logger.info(uri);
+
+        //RESTFul between servers
+        RestTemplate restTemplate = new RestTemplate();
+        ShortURL su = restTemplate.getForObject(uri, ShortURL.class);
 
         String user = (String) request.getSession().getAttribute("user");
         if(user != null){

@@ -1,19 +1,21 @@
 package urlshortener.blackgoku;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
-import urlshortener.blackgoku.domain.User;
-import urlshortener.blackgoku.repository.UserRepository;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
 public class Application extends SpringBootServletInitializer  implements CommandLineRunner {
 
-	@Autowired
-	UserRepository userRepository;
+	@Bean
+	public RestTemplate restTemplate(RestTemplateBuilder builder) {
+		return builder.build();
+	}
 
 	public static void main(String[] args) throws Exception {
 		SpringApplication.run(Application.class, args);
@@ -25,8 +27,6 @@ public class Application extends SpringBootServletInitializer  implements Comman
 	}
 
 	@Override
-	public void run(String... args) throws Exception {
-		//userRepository.save(new User("admin@admin.com","admin"));
-	}
+	public void run(String... args) throws Exception {}
 
 }

@@ -49,18 +49,6 @@ public class UserController extends CoordinatesHelper {
                                  @RequestParam("password")String password,
                                  HttpServletRequest request,
                                  RedirectAttributes ra){
-     /**   logger.info("Detected petition to register user "+email);
-        User usuario = new User(email,password);
-
-        if(userRepo.save(usuario)){
-            request.getSession().setAttribute("user",usuario.getEmail());
-            MessageHelper.addSuccessAttribute(ra,"success.register",email);
-        } else{
-            //error al registrarse
-            MessageHelper.addErrorAttribute(ra,"error.register",email);
-        }
-
-        return new ModelAndView("redirect:/");*/
 
         String xml = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"\n" +
                 "                  xmlns:gs=\"http://urlshortener/blackgoku/web/ws/schema\">\n" +
