@@ -50,6 +50,8 @@ public class UserController extends CoordinatesHelper {
                                  HttpServletRequest request,
                                  RedirectAttributes ra){
 
+        logger.info("Redirecting to soap...");
+
         String xml = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"\n" +
                 "                  xmlns:gs=\"http://urlshortener/blackgoku/web/ws/schema\">\n" +
                 "    <soapenv:Header/>\n" +
@@ -63,7 +65,7 @@ public class UserController extends CoordinatesHelper {
 
         try{
             HttpClient client = HttpClientBuilder.create().build();
-            HttpPost post = new HttpPost("http://localhost:8080/ws");
+            HttpPost post = new HttpPost(request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath()) + "/ws");
 
             StringEntity input =  new StringEntity(xml);
             input.setContentType("text/xml");
