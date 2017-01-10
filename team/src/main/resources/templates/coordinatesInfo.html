@@ -30,6 +30,11 @@
                 stompClient.subscribe('/topic/answer', function (coordinates) {
                     var lat = JSON.parse(coordinates.body).latitude;
                     var lon = JSON.parse(coordinates.body).longitude;
+                    if(lat == 0){
+                        lat = "Not defined";
+                    } if(lon == 0){
+                        lon = "Not defined";
+                    }
                     $("#idBlockedLatitude").val(lat);
                     $("#idBlockedLongitude").val(lon);
 
