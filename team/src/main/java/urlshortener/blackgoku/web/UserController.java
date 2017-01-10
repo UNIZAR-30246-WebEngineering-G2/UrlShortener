@@ -8,6 +8,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -97,8 +98,7 @@ public class UserController extends CoordinatesHelper {
 
         return new ModelAndView("redirect:/");
     }
-
-    @RequestMapping(value="/login", method=RequestMethod.POST)
+    @RequestMapping(value="/login", method= RequestMethod.POST)
     public ModelAndView login(@RequestParam("email")String email,
                               @RequestParam("password")String password,
                               HttpServletRequest request,
@@ -128,5 +128,16 @@ public class UserController extends CoordinatesHelper {
         MessageHelper.addSuccessAttribute(ra,"success.session.close","");
         request.getSession().invalidate();
         return new ModelAndView("redirect:/");
+    }
+
+    @RequestMapping(value="/coordinatesInfo")
+    public ModelAndView coordinatesInfo(HttpServletRequest request){
+
+        String usuario = (String) request.getSession().getAttribute("user");
+        if(usuario!=null){
+            return new ModelAndView("coordinatesInfo");
+        } else{
+            return new ModelAndView("redirect:/");
+        }
     }
 }

@@ -63,6 +63,8 @@ targetCompatibility = 1.8
 dependencies {
     compile project(':common')
     compile("org.thymeleaf:thymeleaf-spring4")
+
+    //webSockets
     compile("org.springframework.boot:spring-boot-starter-websocket")
     compile("org.webjars:webjars-locator")
     compile("org.webjars:sockjs-client:1.0.2")

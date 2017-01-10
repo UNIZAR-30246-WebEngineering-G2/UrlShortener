@@ -12,9 +12,6 @@ import org.springframework.ws.wsdl.wsdl11.DefaultWsdl11Definition;
 import org.springframework.xml.xsd.SimpleXsdSchema;
 import org.springframework.xml.xsd.XsdSchema;
 
-/**
- * Created by Cristina on 21/12/2016.
- */
 @EnableWs
 @Configuration
 public class WebServicesConfig extends WsConfigurerAdapter{
