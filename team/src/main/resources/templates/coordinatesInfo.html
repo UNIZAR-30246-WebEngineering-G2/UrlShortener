@@ -30,8 +30,8 @@
                 stompClient.subscribe('/topic/answer', function (coordinates) {
                     var lat = JSON.parse(coordinates.body).latitude;
                     var lon = JSON.parse(coordinates.body).longitude;
-                    console.log(lat);
-                    console.log(lon);
+                    $("#idBlockedLatitude").val(lat);
+                    $("#idBlockedLongitude").val(lon);
 
                 });
             });
@@ -47,13 +47,15 @@
 				<div class="input-group input-group-lg col-sm-offset-4 col-sm-4">
 					<label for="idBlockedLatitude">Latitude</label>
 					<input type="text" class="center-block form-control input-lg"
-						   title="Current blocked latitude" placeholder="Refresh to get it!" id="idBlockedLatitude" name="blockedLatitude"/>
+						   title="Current blocked latitude" placeholder="Refresh to get it!" id="idBlockedLatitude" name="blockedLatitude"
+					disabled="disabled"/>
 				</div>
 				<br/>
 				<div class="input-group input-group-lg col-sm-offset-4 col-sm-4">
 					<label for="idBlockedLongitude">Longitude</label>
 					<input type="text" class="center-block form-control input-lg"
-						   title="Current blocked longitude" placeholder="Refresh to get it!" id="idBlockedLongitude" name="blockedLongitude"/>
+						   title="Current blocked longitude" placeholder="Refresh to get it!" id="idBlockedLongitude" name="blockedLongitude"
+					disabled="disabled"/>
 				</div>
 				<br/>
 				<div class="input-group input-group-lg col-sm-offset-4 col-sm-4">
