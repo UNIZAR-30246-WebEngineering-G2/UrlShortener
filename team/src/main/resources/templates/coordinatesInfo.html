@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<title>URL Shortener</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<link rel="stylesheet" type="text/css" href="webjars/bootstrap/3.3.5/css/bootstrap.min.css" />
+	<script type="text/javascript" src="webjars/jquery/2.1.4/jquery.min.js"></script>
+	<script type="text/javascript" src="webjars/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="/js/app.js"></script>
+	<script type="text/javascript" src="/js/requests.js"></script>
+	<script type="text/javascript" src="/js/updateCoordinates.js"></script>
+	<script src="/webjars/sockjs-client/sockjs.min.js"></script>
+	<script src="/webjars/stomp-websocket/stomp.min.js"></script>
+	<script type="text/javascript">
+        var stompClient = null;
+        function sendR(){
+            stompClient.send("/app/ipcoord",{},JSON.stringify({'req':'req'}));
+        }
+        function setConnected(connected) {
+            $("#connect").prop("disabled", connected);
+            $("#disconnect").prop("disabled", !connected);
+        }
+        function connect() {
+            var socket = new SockJS('/coord');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function (frame) {
+                setConnected(true);
+                console.log('Connected: ' + frame);
+                stompClient.subscribe('/topic/answer', function (coordinates) {
+                    var lat = JSON.parse(coordinates.body).latitude;
+                    var lon = JSON.parse(coordinates.body).longitude;
+                    console.log(lat);
+                    console.log(lon);
+
+                });
+            });
+        }
+	</script>
+</head>
+<body onload="connect();">
+
+	<div class="container-full">
+		<div class="row">
+			<br/>
+			<div class="col-lg-12 text-center">
+				<div class="input-group input-group-lg col-sm-offset-4 col-sm-4">
+					<label for="idBlockedLatitude">Latitude</label>
+					<input type="text" class="center-block form-control input-lg"
+						   title="Current blocked latitude" placeholder="Refresh to get it!" id="idBlockedLatitude" name="blockedLatitude"/>
+				</div>
+				<br/>
+				<div class="input-group input-group-lg col-sm-offset-4 col-sm-4">
+					<label for="idBlockedLongitude">Longitude</label>
+					<input type="text" class="center-block form-control input-lg"
+						   title="Current blocked longitude" placeholder="Refresh to get it!" id="idBlockedLongitude" name="blockedLongitude"/>
+				</div>
+				<br/>
+				<div class="input-group input-group-lg col-sm-offset-4 col-sm-4">
+					<button
+							class="btn btn-lg btn-primary" onclick="sendR();">Refresh!</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
